@@ -51,10 +51,27 @@ model Product {
 // Relations
   orderItems OrderItem[]
   cartItems CartItem[]
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
   
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  @@index([sku])
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("products")
+}
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  products  Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([name])
+  @@map("categories")
 }
 
 model OrderItem {

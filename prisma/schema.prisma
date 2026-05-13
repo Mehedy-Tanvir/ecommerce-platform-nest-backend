@@ -27,6 +27,8 @@ model User {
   role      Role     @default(USER)
   refreshToken String?
   orders   Order[]
+  carts  Cart[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -40,4 +42,13 @@ model Order {
   updatedAt DateTime @updatedAt
 
   
+}
+
+model Cart {
+  id        String   @id @default(uuid())
+  userId    String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

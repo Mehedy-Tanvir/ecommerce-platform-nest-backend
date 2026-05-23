@@ -104,3 +104,7 @@ to migrate prisma database in neodb
 to generate prisma
 run
 `npx prisma generate`
+
+to generate jwt secret
+run
+` node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`

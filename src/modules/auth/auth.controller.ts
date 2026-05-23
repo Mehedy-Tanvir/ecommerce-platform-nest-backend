@@ -8,7 +8,5 @@ export class AuthController {
 
   //   register api
 
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
-  }
+  async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {}
 }

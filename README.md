@@ -100,3 +100,7 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 run
 `npx prisma migrate dev --name init`
 to migrate prisma database in neodb
+
+to generate prisma
+run
+`npx prisma generate`

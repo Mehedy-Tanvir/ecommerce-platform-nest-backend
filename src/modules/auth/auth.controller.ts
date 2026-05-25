@@ -5,6 +5,7 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { JwtAuthGuard } from 'src/common/gaurds/jwt-auth.guard';
+import { LoginDto } from './dto/login-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,5 +33,7 @@ export class AuthController {
   }
   // login
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<{ message: string }> {}
+  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+    return await this.authService.login(loginDto);
+  }
 }

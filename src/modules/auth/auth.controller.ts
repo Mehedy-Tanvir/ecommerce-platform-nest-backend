@@ -4,6 +4,7 @@ import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { JwtAuthGuard } from 'src/common/gaurds/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -23,5 +24,8 @@ export class AuthController {
 
   // logout api
   @UseGuards(JwtAuthGuard)
-  async logout() {}
+  async logout(@GetUser('id') userId: string): Promise<{ message: string }> {
+    await this.authService.logout(userId);
+    return { message: 'Successfully logged out' };
+  }
 }

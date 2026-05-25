@@ -30,4 +30,7 @@ export class AuthController {
     await this.authService.logout(userId);
     return { message: 'Successfully logged out' };
   }
+  // login
+  @Post('login')
+  async login(@Body() loginDto: LoginDto): Promise<{ message: string }> {}
 }

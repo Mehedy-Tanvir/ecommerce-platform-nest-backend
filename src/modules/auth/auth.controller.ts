@@ -20,4 +20,8 @@ export class AuthController {
   async refresh(@GetUser('id') userId: string): Promise<AuthResponseDto> {
     return await this.authService.refreshTokens(userId);
   }
+
+  // logout api
+  @UseGuards(JwtAuthGuard)
+  async logout() {}
 }

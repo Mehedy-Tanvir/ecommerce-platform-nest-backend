@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login-dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
   // register a new user
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -68,8 +70,17 @@ export class AuthService {
     const payload = { sub: userId, email, role };
     const refreshId = randomBytes(16).toString('hex');
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, { expiresIn: '15m' }),
-      this.jwtService.signAsync({ ...payload, refreshId }, { expiresIn: '7d' }),
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.get<string>('JWT_SECRET') ?? 'default_secret_key_2026',
+        expiresIn: '15m',
+      }),
+      this.jwtService.signAsync(
+        { ...payload, refreshId },
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          expiresIn: '7d',
+        },
+      ),
     ]);
     return { accessToken, refreshToken };
   }
@@ -78,9 +89,10 @@ export class AuthService {
     userId: string,
     refreshToken: string,
   ): Promise<void> {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, this.SALT_ROUNDS);
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refreshToken },
+      data: { refreshToken: hashedRefreshToken },
     });
   }
 

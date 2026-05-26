@@ -60,6 +60,6 @@ export class RefreshTokenStrategy extends PassportStrategy(
       console.log('Refresh token does not match stored token');
       throw new UnauthorizedException('Invalid refresh token');
     }
-    return { userId: user.id, email: user.email, role: user.role };
+    return { id: user.id, email: user.email, role: user.role };
   }
 }

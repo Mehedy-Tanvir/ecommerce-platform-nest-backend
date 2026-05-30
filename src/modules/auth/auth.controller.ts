@@ -13,9 +13,7 @@ import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { JwtAuthGuard } from 'src/common/gaurds/jwt-auth.guard';
 import { LoginDto } from './dto/login-dto';
-import { ApiOperation } from 'node_modules/@nestjs/swagger/dist/decorators/api-operation.decorator';
-import { ApiResponse } from 'node_modules/@nestjs/swagger/dist/decorators/api-response.decorator';
-import { ApiBearerAuth } from 'node_modules/@nestjs/swagger/dist/decorators/api-bearer.decorator';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {

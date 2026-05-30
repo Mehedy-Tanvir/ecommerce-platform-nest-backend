@@ -1,5 +1,5 @@
 import { Role } from '@prisma/client';
-import { ApiProperty } from 'node_modules/@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 
 // DTO for auth response
 export class AuthResponseDto {

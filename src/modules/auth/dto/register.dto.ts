@@ -6,7 +6,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import { ApiProperty } from 'node_modules/@nestjs/swagger/dist/decorators/api-property.decorator';
+import { ApiProperty } from '@nestjs/swagger';
 // Data Transfer Object for user registration
 export class RegisterDto {
   @ApiProperty({

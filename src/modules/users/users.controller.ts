@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -9,6 +9,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { UsersService } from './users.service';
 import { UserResponseDto } from './dto/user-response.dto';
+import type { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
@@ -27,5 +28,5 @@ export class UsersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  async getProfile() {}
+  async getProfile(@Req() req: RequestWithUser) {}
 }

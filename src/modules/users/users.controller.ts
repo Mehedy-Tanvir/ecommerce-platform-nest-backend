@@ -28,5 +28,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  async getProfile(@Req() req: RequestWithUser) {}
+  async getProfile(@Req() req: RequestWithUser): Promise<UserResponseDto> {
+    return await this.usersService.findOne(req.user.id);
+  }
 }

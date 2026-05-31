@@ -16,14 +16,16 @@ export class UserResponseDto {
   @ApiProperty({
     description: 'First name of the user',
     example: 'John',
+    nullable: true,
   })
-  firstName!: string;
+  firstName!: string | null;
 
   @ApiProperty({
     description: 'Last name of the user',
     example: 'Doe',
+    nullable: true,
   })
-  lastName!: string;
+  lastName!: string | null;
 
   @ApiProperty({
     description: 'Role of the user',

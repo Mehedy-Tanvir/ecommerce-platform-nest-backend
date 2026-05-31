@@ -7,9 +7,11 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { UsersService } from './users.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import type { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
+import { Role } from '@prisma/client';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
@@ -30,5 +32,21 @@ export class UsersController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async getProfile(@Req() req: RequestWithUser): Promise<UserResponseDto> {
     return await this.usersService.findOne(req.user.id);
+  }
+
+  // Get all users
+
+  @Get()
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({
+    status: 200,
+    description: 'All users retrieved successfully.',
+    type: [UserResponseDto],
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  async findAll(): Promise<UserResponseDto[]> {
+    return await this.usersService.findAll();
   }
 }

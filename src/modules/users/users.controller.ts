@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -48,5 +48,21 @@ export class UsersController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async findAll(): Promise<UserResponseDto[]> {
     return await this.usersService.findAll();
+  }
+
+  // Get user by ID (Admin only)
+  @Get(':id')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get user by ID (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User retrieved successfully.',
+    type: UserResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async findOne(@Param('id') id: string): Promise<UserResponseDto> {
+    return await this.usersService.findOne(id);
   }
 }

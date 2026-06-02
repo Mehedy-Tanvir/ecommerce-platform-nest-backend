@@ -114,7 +114,7 @@ export class UsersController {
   async changePassword(
     @GetUser('id') userId: string,
     @Body() changePasswordDto: ChangePasswordDto,
-  ): Promise<void> {
-    await this.usersService.changePassword(userId, changePasswordDto);
+  ): Promise<{ message: string }> {
+    return await this.usersService.changePassword(userId, changePasswordDto);
   }
 }

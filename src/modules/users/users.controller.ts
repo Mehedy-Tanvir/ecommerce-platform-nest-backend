@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -81,7 +89,12 @@ export class UsersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  async updateProfile(@Req() req: RequestWithUser): Promise<UserResponseDto> {
-    return await this.usersService.update(req.user.id, req.body);
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  @ApiResponse({ status: 409, description: 'Conflict. Email already in use.' })
+  async updateProfile(
+    userId: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    return await this.usersService.update(userId, updateUserDto);
   }
 }

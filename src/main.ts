@@ -52,7 +52,7 @@ async function bootstrap() {
       },
       'Refresh-JWT-auth',
     )
-    .addServer('http://localhost:3000/api/v1', 'Development Server')
+    .addServer('http://localhost:3000', 'Development Server')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -135,4 +135,20 @@ export class UsersController {
   ): Promise<{ message: string }> {
     return await this.usersService.remove(userId);
   }
+
+  // Delete user by ID (Admin only)
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete user by ID (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User deleted successfully.',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
+    return await this.usersService.remove(id);
+  }
 }

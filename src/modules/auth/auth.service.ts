@@ -71,7 +71,9 @@ export class AuthService {
     const refreshId = randomBytes(16).toString('hex');
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('JWT_SECRET') ?? 'default_secret_key_2026',
+        secret:
+          this.configService.get<string>('JWT_SECRET') ??
+          'default_secret_key_2026',
         expiresIn: '15m',
       }),
       this.jwtService.signAsync(
@@ -89,7 +91,10 @@ export class AuthService {
     userId: string,
     refreshToken: string,
   ): Promise<void> {
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, this.SALT_ROUNDS);
+    const hashedRefreshToken = await bcrypt.hash(
+      refreshToken,
+      this.SALT_ROUNDS,
+    );
     await this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken: hashedRefreshToken },

@@ -50,7 +50,7 @@ async function bootstrap() {
           'Enter your refresh JWT token in the format: Bearer <token>',
         in: 'header',
       },
-      'Refresh-JWT-auth',
+      'JWT-refresh',
     )
     .addServer('http://localhost:3000', 'Development Server')
     .build();

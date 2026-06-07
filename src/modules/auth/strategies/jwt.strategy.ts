@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UnauthorizedException } from '@nestjs/common';
 
 // jwt strategy for auth requests
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+  private readonly logger = new Logger(JwtStrategy.name);
+
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
@@ -22,7 +23,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   //   Validate JWT payload
-  async validate(payload: { sub: string; email: string }) {
+  async validate(payload: { sub: string; email: string; role: string }) {
+    this.logger.debug(
+      `Validating JWT for sub=${payload.sub} email=${payload.email} role=${payload.role}`,
+    );
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       select: {
@@ -37,8 +41,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     });
     if (!user) {
+      this.logger.warn(
+        `JWT validation failed: user ${payload.sub} not found in DB`,
+      );
       throw new UnauthorizedException('Invalid token');
     }
+    this.logger.debug(
+      `JWT validated successfully for user ${user.id} role=${user.role}`,
+    );
     return user;
   }
 }

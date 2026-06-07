@@ -1,10 +1,18 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
+  private readonly logger = new Logger(RolesGuard.name);
+
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -20,12 +28,28 @@ export class RolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const { user } = request;
+
+    this.logger.debug(
+      `RolesGuard: user=${user?.id} userRole=${user?.role} requiredRoles=${requiredRoles.join(',')}`,
+    );
+
     const userRoles = Array.isArray(user?.roles)
       ? user.roles
       : user?.role
         ? [user.role]
         : [];
+
     const hasAccess = requiredRoles.some((role) => userRoles.includes(role));
-    return hasAccess;
+
+    if (!hasAccess) {
+      this.logger.warn(
+        `Access denied: user ${user?.id} with role [${userRoles.join(',')}] does not have required role [${requiredRoles.join(',')}]`,
+      );
+      throw new ForbiddenException(
+        `Access denied: requires role [${requiredRoles.join(', ')}]`,
+      );
+    }
+
+    return true;
   }
 }

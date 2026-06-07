@@ -97,7 +97,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   @ApiResponse({ status: 409, description: 'Conflict. Email already in use.' })
   async updateProfile(
-    userId: string,
+    @GetUser('id') userId: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
     return await this.usersService.update(userId, updateUserDto);

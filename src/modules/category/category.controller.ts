@@ -37,5 +37,7 @@ export class CategoryController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async createCategory(
     createCategoryDto: CreateCategoryDto,
-  ): Promise<CategoryResponseDto> {}
+  ): Promise<CategoryResponseDto> {
+    return await this.categoryService.createCategory(createCategoryDto);
+  }
 }

@@ -72,9 +72,7 @@ export class CategoryController {
       },
     },
   })
-  async findAll(
-    @Query() queryDto: QueryCategoryDto,
-  ): Promise<CategoryResponseDto[]> {
-    return await this.categoryService.getAllCategories();
+  async findAll(@Query() queryDto: QueryCategoryDto) {
+    return await this.categoryService.findAll(queryDto);
   }
 }

@@ -1,4 +1,13 @@
-import { Controller, Get, Post, UseGuards, Query, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Query,
+  Param,
+  Patch,
+  Body,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -108,5 +117,31 @@ export class CategoryController {
     @Param('slug') slug: string,
   ): Promise<CategoryResponseDto> {
     return await this.categoryService.findOneBySlug(slug);
+  }
+
+  // update category admin only
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Update a category admin only',
+    description:
+      'Updates a category by its ID. Only accessible by admin users.',
+  })
+  @ApiBody({ type: UpdateCategoryDto })
+  @ApiResponse({
+    status: 200,
+    description: 'The category has been successfully updated.',
+    type: CategoryResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 404, description: 'Category not found.' })
+  async updateCategory(
+    @Param('id') id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ): Promise<CategoryResponseDto> {
+    return await this.categoryService.updateCategory(id, updateCategoryDto);
   }
 }

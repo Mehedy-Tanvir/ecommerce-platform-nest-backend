@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Logger,
   Post,
   UseGuards,
   Query,
@@ -29,6 +30,8 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 @ApiTags('Category')
 @Controller('categories')
 export class CategoryController {
+  private readonly logger = new Logger(CategoryController.name);
+
   constructor(private readonly categoryService: CategoryService) {}
 
   //   create a new category

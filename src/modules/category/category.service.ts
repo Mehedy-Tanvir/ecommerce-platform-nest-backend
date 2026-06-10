@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -13,31 +14,49 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoryService {
+  private readonly logger = new Logger(CategoryService.name);
+
   constructor(private prisma: PrismaService) {}
 
   //   create a new category
   async createCategory(createCategoryDto: CreateCategoryDto) {
     const { name, slug, ...rest } = createCategoryDto;
+
     const categorySlug =
       slug ??
       name
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^\w-]+/g, '');
+
     const existingCategory = await this.prisma.category.findUnique({
       where: { slug: categorySlug },
     });
+
     if (existingCategory) {
-      throw new Error('Category with this slug already exists.');
+      this.logger.warn(
+        `[createCategory] Slug conflict: "${categorySlug}" already exists.`,
+      );
+      throw new ConflictException(
+        `Category with slug "${categorySlug}" already exists.`,
+      );
     }
+
+    // Include _count so productCount is always read from DB (not hardcoded to 0)
     const category = await this.prisma.category.create({
       data: {
         name,
         slug: categorySlug,
         ...rest,
       },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
     });
-    return this.formatCategory(category, 0);
+
+    return this.formatCategory(category, category._count.products);
   }
 
   private formatCategory(
@@ -141,25 +160,45 @@ export class CategoryService {
 
   // update a category
   async updateCategory(id: string, updateCategoryDto: UpdateCategoryDto) {
+    // Step 1: Check if category exists
     const category = await this.prisma.category.findUnique({
       where: { id },
     });
+
     if (!category) {
+      this.logger.warn(`[updateCategory] Category not found for id: ${id}`);
       throw new NotFoundException('Category not found.');
     }
+
+    // Step 2: Check slug uniqueness if slug is being changed
     if (updateCategoryDto.slug && updateCategoryDto.slug !== category.slug) {
       const existingCategory = await this.prisma.category.findUnique({
         where: { slug: updateCategoryDto.slug },
       });
       if (existingCategory) {
+        this.logger.warn(
+          `[updateCategory] Slug conflict: "${updateCategoryDto.slug}" is already used by category id: ${existingCategory.id}`,
+        );
         throw new ConflictException(
           `Category with this slug ${updateCategoryDto.slug} already exists.`,
         );
       }
     }
+
+    // Step 3: Strip unknown fields (e.g. id, productCount) that are not
+    // part of the Prisma Category update schema before saving.
+    const { name, slug, description, imageUrl, isActive } = updateCategoryDto;
+    const sanitizedData: Prisma.CategoryUpdateInput = {};
+    if (name !== undefined) sanitizedData.name = name;
+    if (slug !== undefined) sanitizedData.slug = slug;
+    if (description !== undefined) sanitizedData.description = description;
+    if (imageUrl !== undefined) sanitizedData.imageUrl = imageUrl;
+    if (isActive !== undefined) sanitizedData.isActive = isActive;
+
+    // Step 4: Perform the update
     const updatedCategory = await this.prisma.category.update({
       where: { id },
-      data: updateCategoryDto,
+      data: sanitizedData,
       include: {
         _count: {
           select: { products: true },

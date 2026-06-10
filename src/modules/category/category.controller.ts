@@ -23,6 +23,7 @@ import { Role } from '@prisma/client';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @ApiTags('Category')
 @Controller('categories')
@@ -138,6 +139,7 @@ export class CategoryController {
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 404, description: 'Category not found.' })
+  @ApiResponse({ status: 409, description: 'category slug already exists.' })
   async updateCategory(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,

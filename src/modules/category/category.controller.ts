@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Query, Param } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -74,5 +74,21 @@ export class CategoryController {
   })
   async findAll(@Query() queryDto: QueryCategoryDto) {
     return await this.categoryService.findAll(queryDto);
+  }
+
+  // Get a category by ID
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get a category by ID',
+    description: 'Retrieves a category by its ID.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the category with the specified ID.',
+    type: CategoryResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Category not found.' })
+  async findOne(@Param('id') id: string): Promise<CategoryResponseDto> {
+    return await this.categoryService.findOne(id);
   }
 }

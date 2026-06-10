@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Body,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -145,5 +146,29 @@ export class CategoryController {
     @Body() updateCategoryDto: UpdateCategoryDto,
   ): Promise<CategoryResponseDto> {
     return await this.categoryService.updateCategory(id, updateCategoryDto);
+  }
+
+  // Delete a category admin only
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Delete a category admin only',
+    description:
+      'Deletes a category by its ID. Only accessible by admin users.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The category has been successfully deleted.',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 404, description: 'Category not found.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot delete category with associated products.',
+  })
+  async deleteCategory(@Param('id') id: string): Promise<{ message: string }> {
+    return await this.categoryService.deleteCategory(id);
   }
 }

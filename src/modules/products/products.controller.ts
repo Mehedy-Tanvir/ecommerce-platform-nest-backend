@@ -21,6 +21,8 @@ import { Role } from '@prisma/client';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { QueryProductDto } from './dto/query-product.dto';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -101,4 +103,16 @@ export class ProductsController {
   async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
     return await this.productService.findOne(id);
   }
+
+  // update a product
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth("JWT-auth")
+  @ApiOperation({
+    summary: "Update a product - Admin only"
+  })
+  @ApiBody({
+    type: UpdateProductDto,
+  })
 }

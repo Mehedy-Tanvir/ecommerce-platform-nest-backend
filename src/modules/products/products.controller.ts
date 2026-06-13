@@ -1,10 +1,17 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { CreateProductDto } from './dto/create-product.dto';
+import { ProductResponseDto } from './dto/product-response.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -20,6 +27,12 @@ export class ProductsController {
   @ApiBody({
     type: CreateProductDto,
   })
+  @ApiResponse({
+    status: 201,
+    description: 'The product has been successfully created.',
+    type: ProductResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
   createProduct(@Body() createProductDto: CreateProductDto) {
     return this.productService.create(createProductDto);
   }

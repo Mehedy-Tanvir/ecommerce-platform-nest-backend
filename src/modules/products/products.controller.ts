@@ -33,7 +33,11 @@ export class ProductsController {
     type: ProductResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
-  createProduct(@Body() createProductDto: CreateProductDto) {
+  @ApiResponse({ status: 409, description: 'Sku already exists.' })
+  @ApiResponse({ status: 403, description: 'Forbidden admin role required' })
+  createProduct(
+    @Body() createProductDto: CreateProductDto,
+  ): Promise<ProductResponseDto> {
     return this.productService.create(createProductDto);
   }
 }

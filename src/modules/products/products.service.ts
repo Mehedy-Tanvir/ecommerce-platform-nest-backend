@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { Category, Prisma, Product } from '@prisma/client';
+import { QueryProductDto } from './dto/query-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -41,6 +42,55 @@ export class ProductsService {
       ...product,
       category: product.category.name,
       price: Number(product.price),
+    };
+  }
+
+  //   get all products
+  async findAll(queryDto: QueryProductDto): Promise<{
+    data: ProductResponseDto[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const { category, isActive, search, page = 1, limit = 10 } = queryDto;
+
+    const where: Prisma.ProductWhereInput = {};
+
+    if (category) {
+      where.categoryId = category;
+    }
+    if (isActive !== undefined) {
+      where.isActive = isActive;
+    }
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    const total = await this.prisma.product.count({ where });
+
+    const products = await this.prisma.product.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        category: true,
+      },
+    });
+
+    return {
+      data: products.map((product) => this.formatProduct(product)),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 }

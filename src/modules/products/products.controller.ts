@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -12,6 +12,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
+import { QueryProductDto } from './dto/query-product.dto';
 
 @ApiTags('products')
 @Controller('products')
@@ -39,5 +40,39 @@ export class ProductsController {
     @Body() createProductDto: CreateProductDto,
   ): Promise<ProductResponseDto> {
     return this.productService.create(createProductDto);
+  }
+
+  // Get all products
+  @Get()
+  @ApiOperation({
+    summary: 'Get all products with optimal filters',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of products with pagination',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/ProductResponseDto' },
+        },
+        meta: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            page: { type: 'number' },
+            limit: { type: 'number' },
+            totalPages: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  async findAll(@Query() queryDto: QueryProductDto): Promise<{
+    data: ProductResponseDto[];
+    meta: { total: number; page: number; limit: number; totalPages: number };
+  }> {
+    return await this.productService.findAll(queryDto);
   }
 }

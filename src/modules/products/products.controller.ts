@@ -108,11 +108,30 @@ export class ProductsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @ApiBearerAuth("JWT-auth")
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: "Update a product - Admin only"
+    summary: 'Update a product - Admin only',
   })
   @ApiBody({
     type: UpdateProductDto,
   })
+  @ApiResponse({
+    status: 200,
+    description: 'Product updated successfully',
+    type: ProductResponseDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Product not found',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'SKU already exists',
+  })
+  async update(
+    @Param('id') id: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<ProductResponseDto> {
+    return await this.productService.update(id, updateProductDto);
+  }
 }

@@ -135,4 +135,47 @@ export class ProductsController {
   ): Promise<ProductResponseDto> {
     return await this.productService.update(id, updateProductDto);
   }
+
+  // update product stock
+
+  @Patch(':id/stock')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Update product stock - Admin only',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        quantity: {
+          type: 'number',
+          description:
+            'Stock adjustment (positive to add, negative to subtract)',
+          example: 10,
+        },
+      },
+      required: ['quantity'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Stock updated successfully',
+    type: ProductResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Insufficient stock',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Product not found',
+  })
+  async updateProductStock(
+    @Param('id') id: string,
+    @Body('quantity') quantity: number,
+  ): Promise<ProductResponseDto> {
+    return await this.productService.updateProductStock(id, quantity);
+  }
 }

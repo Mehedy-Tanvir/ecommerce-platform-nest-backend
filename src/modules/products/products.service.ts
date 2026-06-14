@@ -179,4 +179,28 @@ export class ProductsService {
 
     return this.formatProduct(updatedProduct);
   }
+
+  // delete product by id
+  async deleteProduct(id: string): Promise<{ message: string }> {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: {
+        orderItems: true,
+        cartItems: true,
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException("Product doesn't exist");
+    }
+    if (product.orderItems.length > 0) {
+      throw new BadRequestException(
+        'Can not delete product that is part of existing orders. Consider making it as inactive only',
+      );
+    }
+    await this.prisma.product.delete({
+      where: { id },
+    });
+    return { message: 'Product deleted successfully.' };
+  }
 }

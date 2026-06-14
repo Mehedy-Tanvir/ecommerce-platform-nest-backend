@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -177,5 +180,30 @@ export class ProductsController {
     @Body('quantity') quantity: number,
   ): Promise<ProductResponseDto> {
     return await this.productService.updateProductStock(id, quantity);
+  }
+
+  // Remove a product by ID
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Delete product - Admin only',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Product deleted successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Product not found',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Can not delete product in active orders',
+  })
+  async deleteProduct(@Param('id') id: string): Promise<{ message: string }> {
+    return await this.productService.deleteProduct(id);
   }
 }

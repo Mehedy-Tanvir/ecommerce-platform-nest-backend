@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
- import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { Category, Prisma, Product } from '@prisma/client';
@@ -150,7 +150,12 @@ export class ProductsService {
       category: _category,
       id: _id,
       ...cleanDto
-    } = updateProductDto as UpdateProductDto & { id?: string; category?: string };
+    } = updateProductDto as UpdateProductDto & {
+      id?: string;
+      category?: string;
+    };
+    void _category;
+    void _id;
 
     const updateData: Prisma.ProductUncheckedUpdateInput = { ...cleanDto };
     if (cleanDto.price !== undefined) {

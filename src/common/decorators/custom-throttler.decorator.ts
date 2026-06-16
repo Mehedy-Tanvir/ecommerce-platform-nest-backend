@@ -9,3 +9,12 @@ export const StrictThrottle = () =>
       limit: 3,
     },
   });
+
+//   Moderate throttle orders
+export const ModerateThrottle = () =>
+  Throttle({
+    default: {
+      ttl: 1000,
+      limit: 5,
+    },
+  });

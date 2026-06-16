@@ -68,6 +68,12 @@ export class OrderResponseDto {
   })
   items!: OrderItemResponseDto[];
 
+  @ApiProperty({ required: false })
+  userEmail?: string;
+
+  @ApiProperty({ required: false })
+  userName?: string;
+
   @ApiProperty()
   createdAt!: Date;
 

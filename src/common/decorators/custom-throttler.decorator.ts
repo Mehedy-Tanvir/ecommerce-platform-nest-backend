@@ -18,3 +18,12 @@ export const ModerateThrottle = () =>
       limit: 5,
     },
   });
+
+//   Relaxed throttle for read operations
+export const RelaxedThrottle = () =>
+  Throttle({
+    default: {
+      ttl: 1000,
+      limit: 20,
+    },
+  });

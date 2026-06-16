@@ -2,9 +2,10 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { Category, Prisma, Product } from '@prisma/client';
@@ -13,6 +14,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
   constructor(private prisma: PrismaService) {}
 
   //   create product
@@ -119,6 +121,9 @@ export class ProductsService {
     id: string,
     updateProductDto: UpdateProductDto,
   ): Promise<ProductResponseDto> {
+    this.logger.log(`Update called for product id: ${id}`);
+    this.logger.debug(`Payload received: ${JSON.stringify(updateProductDto)}`);
+
     const existingProduct = await this.prisma.product.findUnique({
       where: { id },
       include: {
@@ -138,10 +143,22 @@ export class ProductsService {
         );
       }
     }
-    const updateData: any = { ...updateProductDto };
-    if (updateProductDto.price !== undefined) {
-      updateData.price = new Prisma.Decimal(updateProductDto.price);
+
+    // Strip out fields that are not part of the Prisma Product model
+    // (e.g. 'category' string and 'id' sometimes sent from clients)
+    const {
+      category: _category,
+      id: _id,
+      ...cleanDto
+    } = updateProductDto as UpdateProductDto & { id?: string; category?: string };
+
+    const updateData: Prisma.ProductUncheckedUpdateInput = { ...cleanDto };
+    if (cleanDto.price !== undefined) {
+      updateData.price = new Prisma.Decimal(cleanDto.price);
     }
+
+    this.logger.debug(`Prisma update data: ${JSON.stringify(updateData)}`);
+
     const updatedProduct = await this.prisma.product.update({
       where: { id },
       data: updateData,

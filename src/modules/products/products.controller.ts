@@ -134,7 +134,7 @@ export class ProductsController {
   })
   async update(
     @Param('id') id: string,
-    updateProductDto: UpdateProductDto,
+    @Body() updateProductDto: UpdateProductDto,
   ): Promise<ProductResponseDto> {
     return await this.productService.update(id, updateProductDto);
   }

@@ -1,10 +1,11 @@
 import { Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { OrdersService } from './orders.service';
 import { ModerateThrottle } from 'src/common/decorators/custom-throttler.decorator';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { OrderApiResponseDto } from './dto/order-response.dto';
 
 @ApiTags('Orders')
 @ApiBearerAuth('JWT-auth')
@@ -21,5 +22,9 @@ export class OrdersController {
 })
 @ApiBody({
     type: CreateOrderDto
+})
+@ApiCreatedResponse({
+    description: "Order created successfully",
+    type: OrderApiResponseDto
 })
 }

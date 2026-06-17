@@ -14,4 +14,8 @@ export class QueryOrderDto {
   @IsOptional()
   @IsString()
   status?: OrderStatus;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

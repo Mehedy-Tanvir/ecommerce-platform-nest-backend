@@ -105,5 +105,7 @@ export class OrdersController {
   @ApiForbiddenResponse({
     description: 'Admin success required',
   })
-  async findAllForAdmin(@Query QueryOrderDto) {}
+  async findAllForAdmin(@Query() query: QueryOrderDto) {
+    return await this.orderService.findAllForAdmin(query);
+  }
 }

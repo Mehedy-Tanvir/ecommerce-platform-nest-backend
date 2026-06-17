@@ -161,4 +161,25 @@ export class OrdersController {
   async findOneAdmin(@Param('id') id: string) {
     return await this.orderService.findOne(id);
   }
+
+  // User: Get own order by id
+  @Get(':id')
+  @RelaxedThrottle()
+  @ApiOperation({
+    summary: 'Get an order by ID for current user',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Order ID',
+  })
+  @ApiOkResponse({
+    description: 'Order details',
+    type: OrderApiResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Order not found',
+  })
+  async findConfigFile(@Param('id') id: string, @GetUser('id') userId: string) {
+    return await this.orderService.findOne(id, userId);
+  }
 }

@@ -187,4 +187,45 @@ export class OrdersService {
       limit,
     };
   }
+
+  // Get user current orders
+  async findAllForUser(
+    userId: string,
+    query: QueryOrderDto,
+  ): Promise<{
+    data: OrderResponseDto[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { page = 1, limit = 10, status, search } = query;
+    const skip = (page - 1) * limit;
+    const where: any = { userId };
+    if (status) where.status = status;
+    if (search) where.OR = [{ id: { contains: search, mode: 'insensitive' } }];
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+          user: true,
+        },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: orders.map((o) => this.map(o)),
+      total,
+      page,
+      limit,
+    };
+  }
 }

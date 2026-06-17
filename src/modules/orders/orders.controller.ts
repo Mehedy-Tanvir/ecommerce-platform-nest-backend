@@ -6,6 +6,7 @@ import {
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiResponse,
@@ -25,6 +26,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import {
   OrderApiResponseDto,
   OrderResponseDto,
+  PaginationOrderResponseDto,
 } from './dto/order-response.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
@@ -107,5 +109,22 @@ export class OrdersController {
   })
   async findAllForAdmin(@Query() query: QueryOrderDto) {
     return await this.orderService.findAllForAdmin(query);
+  }
+
+  // User get own orders
+  @Get()
+  @RelaxedThrottle()
+  @ApiOperation({
+    summary: 'Get all orders for current user (pagination)',
+  })
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOkResponse({
+    description: 'List of user orders',
+    type: PaginationOrderResponseDto,
+  })
+  async findAll(@Query() query: QueryOrderDto, @GetUser('id') userId: string) {
+    return await this.orderService.findAllForUser(userId, query);
   }
 }

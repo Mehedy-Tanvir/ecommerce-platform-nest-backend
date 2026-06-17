@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -8,6 +16,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -126,5 +135,30 @@ export class OrdersController {
   })
   async findAll(@Query() query: QueryOrderDto, @GetUser('id') userId: string) {
     return await this.orderService.findAllForUser(userId, query);
+  }
+
+  // ADMIN: Get order by id
+  @Get('admin/:id')
+  @Roles(Role.ADMIN)
+  @RelaxedThrottle()
+  @ApiOperation({
+    summary: '[Admin]: Get order by id',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Order ID ',
+  })
+  @ApiOkResponse({
+    description: 'Order details',
+    type: OrderResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Order not found',
+  })
+  @ApiForbiddenResponse({
+    description: 'Admin access required',
+  })
+  async findOneAdmin(@Param('id') id: string) {
+    return await this.orderService.findOne(id);
   }
 }

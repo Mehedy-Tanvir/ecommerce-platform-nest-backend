@@ -263,4 +263,25 @@ export class OrdersController {
   async cancelAdmin(@Param('id') id: string) {
     return await this.orderService.cancel(id);
   }
+
+  // Cancel own order (user)
+  @Delete(':id')
+  @ModerateThrottle()
+  @ApiOperation({
+    summary: 'Cancel own order ',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Order ID',
+  })
+  @ApiOkResponse({
+    description: 'Order cancelled',
+    type: OrderApiResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Order not found',
+  })
+  async cancel(@Param('id') id: string, @GetUser('id') userId: string) {
+    return await this.orderService.cancel(id, userId);
+  }
 }

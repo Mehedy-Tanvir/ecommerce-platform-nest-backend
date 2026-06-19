@@ -200,7 +200,7 @@ export class OrdersController {
     type: UpdateOrderDto,
   })
   @ApiOkResponse({
-    description: 'Order update successfully',
+    description: 'Order updated successfully',
     type: OrderApiResponseDto,
   })
   @ApiNotFoundResponse({
@@ -211,5 +211,33 @@ export class OrdersController {
   })
   async updateAdmin(@Param('id') id: string, @Body() dto: UpdateOrderDto) {
     return await this.orderService.update(id, dto);
+  }
+
+  // User update own order
+  @Patch(':id')
+  @ModerateThrottle()
+  @ApiOperation({
+    summary: 'Update your own order',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Order ID',
+  })
+  @ApiBody({
+    type: UpdateOrderDto,
+  })
+  @ApiOkResponse({
+    description: 'Order updated successfully',
+    type: OrderApiResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Order not found',
+  })
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderDto,
+    @GetUser('id') userId: string,
+  ) {
+    return await this.orderService.update(id, dto, userId);
   }
 }

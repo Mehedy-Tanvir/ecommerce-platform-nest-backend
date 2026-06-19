@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -40,6 +41,7 @@ import {
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { QueryOrderDto } from './dto/query-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @ApiTags('Orders')
 @ApiBearerAuth('JWT-auth')
@@ -182,4 +184,19 @@ export class OrdersController {
   async findConfigFile(@Param('id') id: string, @GetUser('id') userId: string) {
     return await this.orderService.findOne(id, userId);
   }
+
+  // ADMIN update order
+  @Patch("admin/:id")
+  @Roles(Role.ADMIN)
+  @ModerateThrottle()
+  @ApiOperation({
+    summary: "[ADMIN] Update any order"
+  })
+  @ApiParam({
+    name: 'id', description: "Order ID"
+  })
+  @ApiBody({
+    type: UpdateOrderDto
+  })
+
 }

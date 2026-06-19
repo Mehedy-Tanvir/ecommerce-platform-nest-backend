@@ -186,17 +186,30 @@ export class OrdersController {
   }
 
   // ADMIN update order
-  @Patch("admin/:id")
+  @Patch('admin/:id')
   @Roles(Role.ADMIN)
   @ModerateThrottle()
   @ApiOperation({
-    summary: "[ADMIN] Update any order"
+    summary: '[ADMIN] Update any order',
   })
   @ApiParam({
-    name: 'id', description: "Order ID"
+    name: 'id',
+    description: 'Order ID',
   })
   @ApiBody({
-    type: UpdateOrderDto
+    type: UpdateOrderDto,
   })
-
+  @ApiOkResponse({
+    description: 'Order update successfully',
+    type: OrderApiResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Order not found',
+  })
+  @ApiForbiddenResponse({
+    description: 'Admin access required',
+  })
+  async updateAdmin(@Param('id') id: string, @Body() dto: UpdateOrderDto) {
+    return await this.orderService.update(id, dto);
+  }
 }

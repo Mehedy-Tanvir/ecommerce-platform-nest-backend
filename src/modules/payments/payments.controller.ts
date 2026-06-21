@@ -4,11 +4,12 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOperation,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PaymentsService } from './payments.service';
-import { CreatePaymentIntentApiResponseDto } from './dto/payment-response.dto';
+import { CreatePaymentIntentApiResponseDto, PaymentApiResponseDto } from './dto/payment-response.dto';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 
@@ -40,4 +41,19 @@ export class PaymentsController {
       createPaymentIntentDto,
     );
   }
+
+
+  @Post("confirm")
+  @ApiOperation({
+    summary: "Confirm payment",
+    description: "Confirm a payment intent for an order"
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Payment confirmed successfully",
+    type: PaymentApiResponseDto
+  })
+  @ApiBadRequestResponse({
+    description: "Payment not found or already completed"
+  })
 }

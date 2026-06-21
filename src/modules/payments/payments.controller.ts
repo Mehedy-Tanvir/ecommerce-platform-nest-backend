@@ -8,8 +8,9 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PaymentsService } from './payments.service';
-import { PaymentApiResponseDto } from './dto/payment-response.dto';
+import { CreatePaymentIntentApiResponseDto } from './dto/payment-response.dto';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
 
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
@@ -25,12 +26,18 @@ export class PaymentsController {
   })
   @ApiCreatedResponse({
     description: 'Payment intent created successfully',
-    type: PaymentApiResponseDto,
+    type: CreatePaymentIntentApiResponseDto,
   })
   @ApiBadRequestResponse({
     description: 'Invalid data or order not found',
   })
   async createPaymentIntent(
     @Body() createPaymentIntentDto: CreatePaymentIntentDto,
-  ) {}
+    @GetUser('id') userId: string,
+  ) {
+    return await this.paymentsService.createPaymentIntent(
+      userId,
+      createPaymentIntentDto,
+    );
+  }
 }

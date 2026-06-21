@@ -77,6 +77,24 @@ export class PaymentApiResponseDto {
   data!: PaymentResponseDto;
 
   @ApiProperty({
+    example: 'Payment retrieved successfully',
+    required: false,
+  })
+  message?: string;
+}
+
+export class CreatePaymentIntentApiResponseDto {
+  @ApiProperty({
+    example: true,
+  })
+  success!: boolean;
+
+  @ApiProperty({
+    type: CreatePaymentIntentResponse,
+  })
+  data!: CreatePaymentIntentResponse;
+
+  @ApiProperty({
     example: 'Payment intent created successfully',
     required: false,
   })

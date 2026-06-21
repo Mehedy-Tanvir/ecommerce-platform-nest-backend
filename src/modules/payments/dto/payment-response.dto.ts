@@ -51,12 +51,28 @@ export class PaymentResponseDto {
   updatedAt!: Date;
 }
 
+export class CreatePaymentIntentResponse {
+  @ApiProperty({
+    example: 'pi_123456789',
+    description: 'Stripe client secret for payment confirmation',
+  })
+  clientSecret!: string;
+
+  @ApiProperty({
+    example: '2134567-23146567-425324125',
+    description: 'Payment id in database',
+  })
+  paymentId!: string;
+}
+
 export class PaymentApiResponseDto {
   @ApiProperty({
     example: true,
   })
   success!: boolean;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: CreatePaymentIntentResponse,
+  })
   data!: PaymentResponseDto;
 }

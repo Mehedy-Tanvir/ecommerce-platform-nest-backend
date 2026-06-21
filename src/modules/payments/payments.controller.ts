@@ -34,7 +34,7 @@ export class PaymentsController {
   async createPaymentIntent(
     @Body() createPaymentIntentDto: CreatePaymentIntentDto,
     @GetUser('id') userId: string,
-  ) {
+  ): Promise<CreatePaymentIntentApiResponseDto> {
     return await this.paymentsService.createPaymentIntent(
       userId,
       createPaymentIntentDto,

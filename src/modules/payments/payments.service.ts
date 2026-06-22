@@ -6,7 +6,9 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import Stripe from 'stripe';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
-import { PaymentStatus } from '@prisma/client';
+import { PaymentStatus, Prisma } from '@prisma/client';
+import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
+import { PaymentResponseDto } from './dto/payment-response.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -48,7 +50,7 @@ export class PaymentsService {
     }
 
     const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: Math.round.apply(amount * 100),
+      amount: Math.round(amount * 100),
       currency,
       metadata: { orderId, userId },
     });
@@ -72,6 +74,97 @@ export class PaymentsService {
         paymentId: payment.id,
       },
       message: 'Payment intent created successfully',
+    };
+  }
+
+  //   confirm payment
+  async confirmPayment(
+    userId: string,
+    confirmPaymentDto: ConfirmPaymentDto,
+  ): Promise<{
+    success: boolean;
+    data: PaymentResponseDto;
+    message: string;
+  }> {
+    const { paymentIntentId, orderId } = confirmPaymentDto;
+
+    const payment = await this.prisma.payment.findFirst({
+      where: {
+        orderId,
+        userId,
+        transactionId: paymentIntentId,
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException('Payment not found');
+    }
+
+    if (payment.status === PaymentStatus.COMPLETED) {
+      throw new BadRequestException('Payment already completed');
+    }
+
+    const paymentIntent =
+      await this.stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status !== 'succeeded') {
+      throw new BadRequestException('Payment not successful');
+    }
+    const [updatedPayment] = await this.prisma.$transaction([
+      this.prisma.payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentStatus.COMPLETED },
+      }),
+
+      this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'PROCESSING' },
+      }),
+    ]);
+
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id: orderId,
+      },
+    });
+
+    if (order?.cartId) {
+      await this.prisma.cart.update({
+        where: { id: order.cartId },
+        data: { checkedOut: true },
+      });
+    }
+
+    return {
+      success: true,
+      data: this.mapToPaymentResponse(updatedPayment),
+      message: 'Payment confirmed',
+    };
+  }
+
+  private mapToPaymentResponse(payment: {
+    id: string;
+    orderId: string;
+    userId: string;
+    amount: Prisma.Decimal;
+    currency: string;
+    status: PaymentStatus;
+    paymentMethod: string | null;
+    transactionId: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }): PaymentResponseDto {
+    return {
+      id: payment.id,
+      orderId: payment.orderId,
+      userId: payment.userId,
+      currency: payment.currency,
+      amount: payment.amount.toNumber(),
+      status: payment.status,
+      paymentMethod: payment.paymentMethod,
+      transactionId: payment.transactionId,
+      createdAt: payment.createdAt,
+      updatedAt: payment.updatedAt,
     };
   }
 }

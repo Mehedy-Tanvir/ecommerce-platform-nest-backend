@@ -102,4 +102,29 @@ export class PaymentsController {
   async findOne(@Param('id') id: string, @GetUser('id') userId: string) {
     return await this.paymentsService.findOne(id, userId);
   }
+
+  // Get payment by order ID
+  @Get('order/:orderId')
+  @ApiParam({
+    name: 'orderId',
+    description: 'order ID',
+    example: 'order-123',
+  })
+  @ApiOperation({
+    summary: 'Get payment by order ID',
+    description: 'Get payment information for a specific order',
+  })
+  @ApiOkResponse({
+    description: 'Payment retrieved successfully',
+    type: PaymentApiResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Payment not found',
+  })
+  async findByOrder(
+    @Param('orderId') orderId: string,
+    @GetUser('id') userId: string,
+  ) {
+    return await this.paymentsService.findByOrder(orderId, userId);
+  }
 }

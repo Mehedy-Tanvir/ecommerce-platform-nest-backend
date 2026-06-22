@@ -208,4 +208,24 @@ export class PaymentsService {
       message: 'Payment retrieved successfully',
     };
   }
+
+  // Get payment by order
+  async findByOrder(
+    orderId: string,
+    userId: string,
+  ): Promise<{
+    success: boolean;
+    data: PaymentResponseDto | null;
+    message: string;
+  }> {
+    const payment = await this.prisma.payment.findFirst({
+      where: { orderId, userId },
+    });
+
+    return {
+      success: true,
+      data: payment ? this.mapToPaymentResponse(payment) : null,
+      message: 'Payment retrieved successfully',
+    };
+  }
 }

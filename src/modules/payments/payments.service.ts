@@ -185,4 +185,27 @@ export class PaymentsService {
       message: 'Payments retrieved successfully',
     };
   }
+
+  // Get payment by ID
+  async findOne(
+    id: string,
+    userId: string,
+  ): Promise<{
+    success: boolean;
+    data: PaymentResponseDto;
+    message: string;
+  }> {
+    const payment = await this.prisma.payment.findFirst({
+      where: { id, userId },
+    });
+    if (!payment) {
+      throw new NotFoundException(`Payment with ID ${id} not found`);
+    }
+
+    return {
+      success: true,
+      data: this.mapToPaymentResponse(payment),
+      message: 'Payment retrieved successfully',
+    };
+  }
 }

@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -78,5 +80,26 @@ export class PaymentsController {
   })
   async findAll(@GetUser('id') userId: string) {
     return await this.paymentsService.findAll(userId);
+  }
+
+  @Get(':id')
+  @ApiParam({
+    name: 'id',
+    description: 'Payment ID',
+    example: '1545655222252-225542-452221522-455',
+  })
+  @ApiOperation({
+    summary: 'Get payment by ID',
+    description: 'Get a specific payment by its ID',
+  })
+  @ApiOkResponse({
+    description: 'Payment retrieved successfully',
+    type: PaymentApiResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Payment not found',
+  })
+  async findOne(@Param('id') id: string, @GetUser('id') userId: string) {
+    return await this.paymentsService.findOne(id, userId);
   }
 }

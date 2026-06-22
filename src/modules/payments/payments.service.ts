@@ -167,4 +167,22 @@ export class PaymentsService {
       updatedAt: payment.updatedAt,
     };
   }
+
+  // Get all payments for current user
+  async findAll(userId: string): Promise<{
+    success: boolean;
+    data: PaymentResponseDto[];
+    message: string;
+  }> {
+    const payments = await this.prisma.payment.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      success: true,
+      data: payments.map((payment) => this.mapToPaymentResponse(payment)),
+      message: 'Payments retrieved successfully',
+    };
+  }
 }

@@ -1,8 +1,9 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -64,5 +65,18 @@ export class PaymentsController {
     @GetUser('id') userId: string,
   ) {
     return await this.paymentsService.confirmPayment(userId, confirmPaymentDto);
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'Get all payments',
+    description: 'Get all payments for the current user',
+  })
+  @ApiOkResponse({
+    description: 'Payments retrieved successfully',
+    type: PaymentApiResponseDto,
+  })
+  async findAll(@GetUser('id') userId: string) {
+    return await this.paymentsService.findAll(userId);
   }
 }

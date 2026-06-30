@@ -25,21 +25,21 @@ import {
   ApiTooManyRequestsResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/guards/roles.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { OrdersService } from './orders.service';
 import {
   ModerateThrottle,
   RelaxedThrottle,
-} from 'src/common/decorators/custom-throttler.decorator';
-import { GetUser } from 'src/common/decorators/get-user.decorator';
+} from '../../common/decorators/custom-throttler.decorator';
+import { GetUser } from '../../common/decorators/get-user.decorator';
 import { CreateOrderDto } from './dto/create-order.dto';
 import {
   OrderApiResponseDto,
   OrderResponseDto,
   PaginationOrderResponseDto,
 } from './dto/order-response.dto';
-import { Roles } from 'src/common/decorators/roles.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { QueryOrderDto } from './dto/query-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';

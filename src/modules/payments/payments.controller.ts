@@ -10,14 +10,14 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PaymentsService } from './payments.service';
 import {
   CreatePaymentIntentApiResponseDto,
   PaymentApiResponseDto,
 } from './dto/payment-response.dto';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
-import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { GetUser } from '../../common/decorators/get-user.decorator';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 
 @Controller('payments')

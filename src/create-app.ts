@@ -3,6 +3,16 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
+function getServerUrl(): string {
+  if (process.env.PUBLIC_API_URL) {
+    return process.env.PUBLIC_API_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return `http://localhost:${process.env.PORT ?? 3000}`;
+}
+
 export async function createApp() {
   const app = await NestFactory.create(AppModule);
 
@@ -50,7 +60,7 @@ export async function createApp() {
       },
       'JWT-refresh',
     )
-    .addServer('http://localhost:3000', 'Development Server')
+    .addServer(getServerUrl(), 'Current Server')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -1,19 +1,25 @@
 import { createApp } from '../src/create-app';
+import type { INestApplication } from '@nestjs/common';
+
+let appPromise: Promise<INestApplication> | null = null;
+
+function getApp(): Promise<INestApplication> {
+  if (!appPromise) {
+    appPromise = createApp().then(async (app) => {
+      await app.init();
+      return app;
+    });
+  }
+  return appPromise;
+}
 
 export default async (req: any, res: any) => {
-  const app = await createApp();
-  await app.init();
-
+  const app = await getApp();
   const expressApp = app.getHttpAdapter().getInstance();
 
-  try {
-    await new Promise<void>((resolve, reject) => {
-      res.once('finish', resolve);
-      res.once('error', reject);
-      expressApp(req, res);
-    });
-  } finally {
-    // Don't await — let Lambda return immediately, cleanup runs in background
-    app.close().catch(() => {});
-  }
+  return new Promise<void>((resolve, reject) => {
+    res.once('finish', resolve);
+    res.once('error', reject);
+    expressApp(req, res);
+  });
 };

@@ -16,7 +16,7 @@ export class PrismaService
       connectionString: process.env.DATABASE_URL,
       max: 5,
       allowExitOnIdle: true,
-      idleTimeoutMillis: 500,
+      idleTimeoutMillis: 30000, // was 500 — too aggressive now that the app is cached
       connectionTimeoutMillis: 10000,
     });
 

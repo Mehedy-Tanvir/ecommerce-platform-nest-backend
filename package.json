@@ -23,6 +23,7 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:down:clean": "docker compose down -v",
+    "docker:ps": "docker compose ps",
     "docker:logs": "docker compose logs -f app",
     "docker:restart": "docker compose restart app",
     "docker:migrate": "docker compose exec app npx prisma migrate dev",

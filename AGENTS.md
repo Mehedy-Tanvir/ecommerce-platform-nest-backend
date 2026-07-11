@@ -1,11 +1,23 @@
 # AGENTS.md — E-Commerce NestJS Backend
 
 ## Quick start
+
+### Local dev (no Docker)
 ```bash
 cp .env.example .env   # fill in DATABASE_URL, JWT secrets
 npm install             # postinstall auto-runs prisma generate
 npx prisma migrate dev  # create/apply local migrations (migrations/ are gitignored)
 npm run start:dev       # http://localhost:3000, Swagger at /api/docs
+```
+
+### Docker dev (Postgres + Redis + app)
+```bash
+cp .env.example .env
+npm run docker:build    # build image & start all services
+npm run docker:ps       # verify all 3 containers are Up
+npm run docker:migrate  # run Prisma migrations
+npm run docker:seed     # seed DB with sample data
+# App at http://localhost:3000 — Postgres at :5433, Redis at :6379
 ```
 
 ## Commands
@@ -22,6 +34,16 @@ npm run start:dev       # http://localhost:3000, Swagger at /api/docs
 | `npx prisma studio` | Browse DB via Prisma Studio |
 | `npx prisma migrate deploy` | Apply pending migrations |
 | `npx prisma generate` | Regenerate Prisma client |
+| `npm run docker:build` | Build image & start all services (first-time setup) |
+| `npm run docker:up` | Start all services (skip rebuild) |
+| `npm run docker:down` | Stop all services |
+| `npm run docker:down:clean` | Stop all services and wipe DB volume |
+| `npm run docker:ps` | Show container status |
+| `npm run docker:logs` | Tail-follow app logs |
+| `npm run docker:restart` | Restart the app container |
+| `npm run docker:migrate` | Run Prisma migrations inside the container |
+| `npm run docker:seed` | Seed database with sample data |
+| `npm run docker:exec -- <cmd>` | Run any command inside the app container |
 
 ## Architecture
 - **Framework**: NestJS v11, TypeScript 5.7, ESM-flavored (`nodenext` module resolution).

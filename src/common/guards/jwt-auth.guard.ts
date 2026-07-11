@@ -28,9 +28,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       const reason =
         info?.name === 'TokenExpiredError'
           ? `Token expired at ${info.expiredAt}`
-          : info?.message ?? err?.message ?? 'Unknown reason';
+          : (info?.message ?? err?.message ?? 'Unknown reason');
       this.logger.warn(`JWT authentication failed: ${reason}`);
-      throw err ?? new UnauthorizedException(`Authentication failed: ${reason}`);
+      throw (
+        err ?? new UnauthorizedException(`Authentication failed: ${reason}`)
+      );
     }
     return user;
   }

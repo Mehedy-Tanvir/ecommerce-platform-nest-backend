@@ -18,7 +18,16 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "docker:build": "docker compose up --build -d",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:down:clean": "docker compose down -v",
+    "docker:logs": "docker compose logs -f app",
+    "docker:restart": "docker compose restart app",
+    "docker:migrate": "docker compose exec app npx prisma migrate dev",
+    "docker:seed": "docker compose exec app npx prisma db seed",
+    "docker:exec": "docker compose exec app"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -31,6 +31,10 @@ npm run docker:seed     # seed DB with sample data
 | `npm test` | Jest unit tests matching `src/**/*.spec.ts` |
 | `npm run test:cov` | Unit tests with coverage |
 | `npm run test:e2e` | E2E tests matching `test/**/*.e2e-spec.ts` |
+| `npm run seed` | Seed database with demo data |
+| `docker compose up -d` | Start all services (db + redis + app) |
+| `docker compose down` | Stop all services |
+| `docker compose exec app npx prisma db seed` | Seed inside container |
 | `npx prisma studio` | Browse DB via Prisma Studio |
 | `npx prisma migrate deploy` | Apply pending migrations |
 | `npx prisma generate` | Regenerate Prisma client |
@@ -77,4 +81,6 @@ npm run docker:seed     # seed DB with sample data
 - **SwaggerUI static assets** are explicitly bundled in `vercel.json` (`includeFiles: "node_modules/swagger-ui-dist/**"`) because Vercel's tracer doesn't auto-detect them.
 - **E2E tests** have a separate Jest config at `test/jest-e2e.json` (rootDir: `.`, regex: `.e2e-spec.ts$`). Unit tests use the in-package.json Jest config (rootDir: `src`).
 - **`PrismaService.cleanDatabase()`** deletes all rows — throws in production. Safe for test teardown.
+- **Global exception filter** at `src/common/filters/http-exception.filter.ts` catches all exceptions, logs them, and returns a uniform JSON error response with `success: false`.
+- **Logging interceptor** at `src/common/interceptors/logging.interceptor.ts` logs every HTTP request (method, url, status, duration).
 - **No CI workflows** in `.github/workflows`.

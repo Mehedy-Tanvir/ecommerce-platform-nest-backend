@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -15,6 +16,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly SALT_ROUNDS = 12;
 
   constructor(
@@ -57,7 +59,10 @@ export class AuthService {
       await this.updateRefreshToken(user.id, tokens.refreshToken);
       return { ...tokens, user };
     } catch (error) {
-      console.error('Error creating user:', error);
+      this.logger.error(
+        'Error creating user:',
+        error instanceof Error ? error.stack : error,
+      );
       throw new InternalServerErrorException('Failed to create user');
     }
   }

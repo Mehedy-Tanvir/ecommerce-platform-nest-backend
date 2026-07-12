@@ -3,7 +3,7 @@ import { Strategy, ExtractJwt } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Request } from 'express';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 // refresh toke strategy
 @Injectable()
@@ -11,6 +11,8 @@ export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
+  private readonly logger = new Logger(RefreshTokenStrategy.name);
+
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
@@ -28,20 +30,20 @@ export class RefreshTokenStrategy extends PassportStrategy(
     req: Request,
     payload: { sub: string; email: string; role: string },
   ) {
-    console.log('RefreshTokenStrategy.validate called');
-    console.log('payload', {
+    this.logger.log('RefreshTokenStrategy.validate called');
+    this.logger.log('payload', {
       sub: payload.sub,
       email: payload.email,
       role: payload.role,
     });
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      console.log('No Authorization header found in request');
+      this.logger.warn('No Authorization header found in request');
       throw new UnauthorizedException('No Authorization header provided');
     }
     const refreshToken = authHeader.replace('Bearer', '').trim();
     if (!refreshToken) {
-      console.log('No refresh token found in Authorization header');
+      this.logger.warn('No refresh token found in Authorization header');
       throw new UnauthorizedException('No refresh token provided');
     }
     const user = await this.prisma.user.findUnique({
@@ -49,7 +51,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
       select: { id: true, email: true, role: true, refreshToken: true },
     });
     if (!user || !user.refreshToken) {
-      console.log('User not found or no refresh token stored for user');
+      this.logger.warn('User not found or no refresh token stored for user');
       throw new UnauthorizedException('Invalid refresh token');
     }
     const refreshTokenMatches = await bcrypt.compare(
@@ -57,7 +59,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
       user.refreshToken,
     );
     if (!refreshTokenMatches) {
-      console.log('Refresh token does not match stored token');
+      this.logger.warn('Refresh token does not match stored token');
       throw new UnauthorizedException('Invalid refresh token');
     }
     return { id: user.id, email: user.email, role: user.role };

@@ -44,14 +44,17 @@ export class PrismaService
       throw new Error('Cleaning the database is not allowed in production');
     }
     const models = Reflect.ownKeys(this).filter(
-      (key) => typeof key === 'string' && !key.startsWith('_'),
+      (key): key is string => typeof key === 'string' && !key.startsWith('_'),
     );
-    return Promise.all(
-      models.map((modelKey) => {
-        if (typeof modelKey === 'string') {
-          return this[modelKey].deleteMany();
+    const deletions = models
+      .map((modelKey) => {
+        const model = this[modelKey as keyof this];
+        if (model && typeof model === 'object' && 'deleteMany' in model) {
+          return (model as { deleteMany: () => Promise<unknown> }).deleteMany();
         }
-      }),
-    );
+        return undefined;
+      })
+      .filter((p): p is Promise<unknown> => !!p);
+    await Promise.all(deletions);
   }
 }

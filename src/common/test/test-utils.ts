@@ -1,5 +1,6 @@
 import { DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended';
 import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 
 type PrismaMock = DeepMockProxy<PrismaClient>;
 
@@ -17,7 +18,6 @@ export async function createTestModule(options: {
   controllers?: any[];
 }) {
   const { Test } = await import('@nestjs/testing');
-  const { PrismaService } = await import('src/prisma/prisma.service');
 
   const prisma = createMockPrisma();
 

@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TRPCAdapter } from './trpc.adapter';
 import { TRPCRouter } from './trpc.router';
 import { OrdersRouter } from './routers/orders.router';
+import { UsersRouter } from './routers/users.router';
 
 @Global()
 @Module({
@@ -16,7 +17,7 @@ import { OrdersRouter } from './routers/orders.router';
       }),
     }),
   ],
-  providers: [TRPCAdapter, TRPCRouter, OrdersRouter],
-  exports: [TRPCAdapter, TRPCRouter, OrdersRouter],
+  providers: [TRPCAdapter, TRPCRouter, OrdersRouter, UsersRouter],
+  exports: [TRPCAdapter, TRPCRouter, OrdersRouter, UsersRouter],
 })
 export class TrpcModule {}

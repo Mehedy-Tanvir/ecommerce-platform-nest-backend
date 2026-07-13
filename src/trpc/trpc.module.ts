@@ -1,6 +1,11 @@
 import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ProductsModule } from 'src/modules/products/products.module';
+import { CategoryModule } from 'src/modules/category/category.module';
+import { AuthModule } from 'src/modules/auth/auth.module';
+import { OrdersModule } from 'src/modules/orders/orders.module';
+import { UsersModule } from 'src/modules/users/users.module';
 import { TRPCAdapter } from './trpc.adapter';
 import { TRPCRouter } from './trpc.router';
 import { ProductsRouter } from './routers/products.router';
@@ -12,6 +17,11 @@ import { UsersRouter } from './routers/users.router';
 @Global()
 @Module({
   imports: [
+    ProductsModule,
+    CategoryModule,
+    AuthModule,
+    OrdersModule,
+    UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

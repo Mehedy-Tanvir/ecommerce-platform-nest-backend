@@ -56,6 +56,7 @@ npm run docker:seed     # seed DB with sample data
 - **Global validation**: `whitelist: true`, `forbidNonWhitelisted: true`, `transform: true`.
 - **Rate limiting**: 10 req/60s global (`@nestjs/throttler`). Custom decorators at `src/common/decorators/custom-throttler.decorator.ts`: `@StrictThrottle` (3/s), `@ModerateThrottle` (5/s), `@RelaxedThrottle` (20/s).
 - **Two entry points**: `src/main.ts` (local dev) and `api/index.ts` (Vercel serverless — caches Nest app at module scope).
+- **tRPC**: Type-safe API layer at `/api/trpc`. Uses `@trpc/server` with Express adapter. Routers at `src/trpc/routers/`. Context extracts JWT user same as Passport strategies. Procedures: `publicProcedure` (no auth), `protectedProcedure` (JWT required), `adminProcedure` (JWT + ADMIN role required).
 - **PrismaModule is `@Global()`** — `PrismaService` available everywhere without importing.
 
 ## Modules (under `src/modules/`)
@@ -67,6 +68,7 @@ npm run docker:seed     # seed DB with sample data
 | category | CategoryController | Slug-based lookup, paginated/filterable |
 | orders | OrdersController | Order lifecycle: PENDING→PROCESSING→SHIPPED→DELIVERED→CANCELLED |
 | payments | PaymentsController | Stripe payment intents, multi-currency |
+| trpc | — | tRPC router at `/api/trpc`. Sub-routers: products, categories, auth, orders, users |
 
 ## Guards & decorators (`src/common/`)
 - **`@UseGuards(JwtAuthGuard)`** — validates JWT access token.
@@ -84,3 +86,39 @@ npm run docker:seed     # seed DB with sample data
 - **Global exception filter** at `src/common/filters/http-exception.filter.ts` catches all exceptions, logs them, and returns a uniform JSON error response with `success: false`.
 - **Logging interceptor** at `src/common/interceptors/logging.interceptor.ts` logs every HTTP request (method, url, status, duration).
 - **No CI workflows** in `.github/workflows`.
+
+## tRPC Usage
+
+### Calling tRPC endpoints
+```bash
+# Public query (products)
+curl -X POST http://localhost:3000/api/trpc \
+  -H "Content-Type: application/json" \
+  -d '{"method": "products.getAll", "params": {"limit": 5}}'
+
+# Protected query (with JWT)
+curl -X POST http://localhost:3000/api/trpc \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"method": "orders.getMyOrders", "params": {}}'
+
+# Mutation (login)
+curl -X POST http://localhost:3000/api/trpc \
+  -H "Content-Type: application/json" \
+  -d '{"method": "auth.login", "params": {"email": "john@example.com", "password": "Admin123!"}}'
+```
+
+### Available routers
+| Router | Key | Procedures |
+|--------|-----|------------|
+| Products | `products` | `getAll`, `getById`, `create`, `update`, `updateStock`, `delete` |
+| Categories | `categories` | `getAll`, `getById`, `getBySlug`, `create`, `update`, `delete` |
+| Auth | `auth` | `register`, `login`, `refresh`, `logout`, `me` |
+| Orders | `orders` | `create`, `getMyOrders`, `getById`, `cancel` |
+| Users | `users` | `getProfile`, `updateProfile`, `changePassword` |
+
+### Validation
+All tRPC inputs are validated with Zod schemas located at `src/trpc/schemas/`. Errors are returned as `{ success: false, message, code }` matching the REST error shape.
+
+### Auth flow
+Protected procedures require a valid JWT access token in the `Authorization: Bearer <token>` header. The token is verified using the same `JwtService` and secret as REST endpoints.

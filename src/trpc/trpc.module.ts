@@ -3,6 +3,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TRPCAdapter } from './trpc.adapter';
 import { TRPCRouter } from './trpc.router';
+import { ProductsRouter } from './routers/products.router';
+import { CategoriesRouter } from './routers/categories.router';
+import { AuthRouter } from './routers/auth.router';
 import { OrdersRouter } from './routers/orders.router';
 import { UsersRouter } from './routers/users.router';
 
@@ -17,7 +20,23 @@ import { UsersRouter } from './routers/users.router';
       }),
     }),
   ],
-  providers: [TRPCAdapter, TRPCRouter, OrdersRouter, UsersRouter],
-  exports: [TRPCAdapter, TRPCRouter, OrdersRouter, UsersRouter],
+  providers: [
+    TRPCAdapter,
+    TRPCRouter,
+    ProductsRouter,
+    CategoriesRouter,
+    AuthRouter,
+    OrdersRouter,
+    UsersRouter,
+  ],
+  exports: [
+    TRPCAdapter,
+    TRPCRouter,
+    ProductsRouter,
+    CategoriesRouter,
+    AuthRouter,
+    OrdersRouter,
+    UsersRouter,
+  ],
 })
 export class TrpcModule {}

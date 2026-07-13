@@ -4,6 +4,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { TRPCAdapter } from './trpc/trpc.adapter';
+import { TRPCRouter } from './trpc/trpc.router';
 
 function getServerUrl(): string {
   if (process.env.PUBLIC_API_URL) {
@@ -83,6 +85,10 @@ export async function createApp() {
     .swagger-ui .info {margin: 50px 0;}
     .swagger-ui .info .title {color: #4A90E2;}`,
   });
+
+  const trpcAdapter = app.get(TRPCAdapter);
+  const trpcRouter = app.get(TRPCRouter);
+  app.use('/api/trpc', trpcAdapter.getMiddleware(trpcRouter.appRouter));
 
   return app;
 }

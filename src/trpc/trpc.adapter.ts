@@ -1,7 +1,13 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import { Injectable, Logger } from '@nestjs/common';
 import type { TRPCRootObject } from '@trpc/server';
-import { Context } from './context';
+import {
+  createExpressMiddleware,
+  CreateExpressContextOptions,
+} from '@trpc/server/adapters/express';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Context, createContext } from './context';
 
 @Injectable()
 export class TRPCAdapter {
@@ -11,7 +17,10 @@ export class TRPCAdapter {
   protectedProcedure: any;
   adminProcedure: any;
 
-  constructor() {
+  constructor(
+    private jwtService: JwtService,
+    private prisma: PrismaService,
+  ) {
     this.t = initTRPC.context<Context>().create({
       errorFormatter: ({ shape, error }) => ({
         ...shape,
@@ -46,5 +55,13 @@ export class TRPCAdapter {
         return next({ ctx });
       }),
     );
+  }
+
+  getMiddleware(appRouter: import('./trpc.router').AppRouter) {
+    return createExpressMiddleware({
+      router: appRouter,
+      createContext: (opts: CreateExpressContextOptions) =>
+        createContext(opts, this.jwtService, this.prisma),
+    });
   }
 }

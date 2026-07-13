@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import { TRPCAdapter } from '../trpc.adapter';
 import { OrdersService } from 'src/modules/orders/orders.service';
+import { createOrderSchema, orderListSchema } from '../schemas/order.schema';
 
 function toTrpcError(err: unknown): never {
   if (err instanceof NotFoundException)
@@ -16,22 +17,6 @@ function toTrpcError(err: unknown): never {
     message: 'An unexpected error occurred',
   });
 }
-
-const createOrderSchema = z.object({
-  items: z.array(
-    z.object({
-      productId: z.string(),
-      quantity: z.number().int().positive(),
-      price: z.number().nonnegative(),
-    }),
-  ),
-  shippingAddress: z.string().optional(),
-});
-
-const getMyOrdersSchema = z.object({
-  page: z.number().default(1),
-  limit: z.number().default(10),
-});
 
 @Injectable()
 export class OrdersRouter {
@@ -51,7 +36,7 @@ export class OrdersRouter {
         ),
 
       getMyOrders: protectedProcedure
-        .input(getMyOrdersSchema)
+        .input(orderListSchema)
         .query(({ ctx, input }) =>
           this.ordersService
             .findAllForUser(ctx.user.id, input)

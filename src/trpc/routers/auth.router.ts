@@ -5,10 +5,14 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { TRPCError } from '@trpc/server';
-import { z } from 'zod';
 
 import { TRPCAdapter } from '../trpc.adapter';
 import { AuthService } from 'src/modules/auth/auth.service';
+import {
+  registerSchema,
+  loginSchema,
+  refreshSchema,
+} from '../schemas/auth.schema';
 
 function toTrpcError(err: unknown): never {
   if (err instanceof ConflictException)
@@ -25,22 +29,6 @@ function toTrpcError(err: unknown): never {
     message: 'An unexpected error occurred',
   });
 }
-
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-});
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
-
-const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
-});
 
 @Injectable()
 export class AuthRouter {

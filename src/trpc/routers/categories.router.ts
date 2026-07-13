@@ -9,6 +9,11 @@ import { z } from 'zod';
 
 import { TRPCAdapter } from '../trpc.adapter';
 import { CategoryService } from 'src/modules/category/category.service';
+import {
+  categoryFilterSchema,
+  createCategorySchema,
+  updateCategorySchema,
+} from '../schemas/category.schema';
 
 function toTrpcError(err: unknown): never {
   if (err instanceof NotFoundException)
@@ -23,29 +28,6 @@ function toTrpcError(err: unknown): never {
   });
 }
 
-const getAllSchema = z.object({
-  search: z.string().optional(),
-  page: z.number().default(1),
-  limit: z.number().default(10),
-});
-
-const createCategorySchema = z.object({
-  name: z.string().min(1),
-  slug: z.string().min(1),
-  description: z.string().optional(),
-  imageUrl: z.string().url().optional(),
-});
-
-const updateCategorySchema = z.object({
-  id: z.string(),
-  data: z.object({
-    name: z.string().min(1).optional(),
-    slug: z.string().min(1).optional(),
-    description: z.string().optional(),
-    imageUrl: z.string().url().optional(),
-  }),
-});
-
 @Injectable()
 export class CategoriesRouter {
   constructor(
@@ -58,7 +40,7 @@ export class CategoriesRouter {
 
     return this.adapter.t.router({
       getAll: procedure
-        .input(getAllSchema)
+        .input(categoryFilterSchema)
         .query(({ input }) =>
           this.categoryService.findAll(input).catch(toTrpcError),
         ),

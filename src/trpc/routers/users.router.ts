@@ -4,10 +4,13 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { TRPCError } from '@trpc/server';
-import { z } from 'zod';
 
 import { TRPCAdapter } from '../trpc.adapter';
 import { UsersService } from 'src/modules/users/users.service';
+import {
+  updateProfileSchema,
+  changePasswordSchema,
+} from '../schemas/user.schema';
 
 function toTrpcError(err: unknown): never {
   if (err instanceof NotFoundException)
@@ -19,16 +22,6 @@ function toTrpcError(err: unknown): never {
     message: 'An unexpected error occurred',
   });
 }
-
-const updateProfileSchema = z.object({
-  firstName: z.string().min(1).optional(),
-  lastName: z.string().min(1).optional(),
-});
-
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(8),
-});
 
 @Injectable()
 export class UsersRouter {

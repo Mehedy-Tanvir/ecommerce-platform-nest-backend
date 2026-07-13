@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TRPCAdapter } from './trpc.adapter';
 import { TRPCRouter } from './trpc.router';
+import { OrdersRouter } from './routers/orders.router';
 
 @Global()
 @Module({
@@ -15,7 +16,7 @@ import { TRPCRouter } from './trpc.router';
       }),
     }),
   ],
-  providers: [TRPCAdapter, TRPCRouter],
-  exports: [TRPCAdapter, TRPCRouter],
+  providers: [TRPCAdapter, TRPCRouter, OrdersRouter],
+  exports: [TRPCAdapter, TRPCRouter, OrdersRouter],
 })
 export class TrpcModule {}

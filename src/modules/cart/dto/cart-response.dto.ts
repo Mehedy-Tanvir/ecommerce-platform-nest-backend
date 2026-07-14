@@ -30,10 +30,16 @@ export class CartResponseDto {
   @ApiProperty({ description: 'The ID of the user who owns the cart' })
   userId!: string;
 
-  @ApiProperty({ type: [CartItemResponseDto], description: 'The items in the cart' })
+  @ApiProperty({
+    type: [CartItemResponseDto],
+    description: 'The items in the cart',
+  })
   items!: CartItemResponseDto[];
 
-  @ApiProperty({ description: 'The total amount for all cart items', example: 39.98 })
+  @ApiProperty({
+    description: 'The total amount for all cart items',
+    example: 39.98,
+  })
   total!: number;
 
   @ApiProperty({ description: 'The creation timestamp of the cart' })

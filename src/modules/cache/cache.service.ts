@@ -6,7 +6,25 @@ import { Cache } from 'cache-manager';
 export class CacheService {
   private readonly logger = new Logger(CacheService.name);
 
-  constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
+  /**
+   * Holds the singleton instance injected by NestJS DI. Decorators use this to
+   * resolve `CacheService` at runtime without depending on method arguments.
+   */
+  private static instance: CacheService | undefined;
+
+  constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {
+    CacheService.instance = this;
+  }
+
+  /** Returns the active `CacheService` instance (set on construction). */
+  static getInstance(): CacheService | undefined {
+    return CacheService.instance;
+  }
+
+  /** Overrides the active instance. Primarily used by tests. */
+  static setInstance(instance: CacheService | undefined): void {
+    CacheService.instance = instance;
+  }
 
   async getOrSet<T>(
     key: string,

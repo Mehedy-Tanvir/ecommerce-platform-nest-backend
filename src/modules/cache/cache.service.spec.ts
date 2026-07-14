@@ -16,8 +16,8 @@ describe('CacheService', () => {
       get: jest.fn(),
       set: jest.fn(),
       del: jest.fn(),
-      reset: jest.fn(),
-      store,
+      clear: jest.fn(),
+      stores: [{ store }],
     }) as unknown as Cache;
 
   beforeEach(async () => {
@@ -129,7 +129,7 @@ describe('CacheService', () => {
   describe('reset', () => {
     it('clears the entire cache', async () => {
       await service.reset();
-      expect(cacheManager.reset).toHaveBeenCalled();
+      expect((cacheManager as any).clear).toHaveBeenCalled();
     });
   });
 });

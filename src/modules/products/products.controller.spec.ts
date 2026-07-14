@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { CacheService } from '../cache/cache.service';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
   let productsService: jest.Mocked<ProductsService>;
+  let cacheService: jest.Mocked<CacheService>;
 
   const mockProduct = {
     id: 'prod-1',
@@ -31,13 +33,25 @@ describe('ProductsController', () => {
       deleteProduct: jest.fn(),
     };
 
+    const mockCacheService = {
+      getOrSet: jest.fn((_key: string, _ttl: number, fn: () => unknown) =>
+        fn(),
+      ),
+      invalidate: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProductsController],
-      providers: [{ provide: ProductsService, useValue: mockService }],
+      providers: [
+        { provide: ProductsService, useValue: mockService },
+        { provide: CacheService, useValue: mockCacheService },
+      ],
     }).compile();
 
     controller = module.get<ProductsController>(ProductsController);
     productsService = module.get(ProductsService);
+    cacheService = module.get(CacheService);
+    CacheService.setInstance(cacheService);
   });
 
   describe('createProduct', () => {
@@ -53,6 +67,19 @@ describe('ProductsController', () => {
       });
       expect(result.sku).toBe('TEST-001');
     });
+
+    it('should invalidate the product cache after creation', async () => {
+      productsService.create.mockResolvedValue(mockProduct);
+
+      await controller.createProduct({
+        name: 'Test Product',
+        price: 99.99,
+        stock: 10,
+        sku: 'TEST-001',
+        categoryId: 'cat-1',
+      });
+      expect(cacheService.invalidate).toHaveBeenCalledWith('products:*');
+    });
   });
 
   describe('findAll', () => {
@@ -66,6 +93,21 @@ describe('ProductsController', () => {
       const result = await controller.findAll({ page: 1, limit: 10 });
       expect(result.data).toHaveLength(1);
     });
+
+    it('should cache the response via CacheService', async () => {
+      const paginatedResult = {
+        data: [mockProduct],
+        meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
+      };
+      productsService.findAll.mockResolvedValue(paginatedResult);
+
+      await controller.findAll({ page: 1, limit: 10 });
+      expect(cacheService.getOrSet).toHaveBeenCalledWith(
+        expect.stringContaining('products:list'),
+        60,
+        expect.any(Function),
+      );
+    });
   });
 
   describe('findOne', () => {
@@ -74,6 +116,17 @@ describe('ProductsController', () => {
 
       const result = await controller.findOne('prod-1');
       expect(result.id).toBe('prod-1');
+    });
+
+    it('should cache the response via CacheService', async () => {
+      productsService.findOne.mockResolvedValue(mockProduct);
+
+      await controller.findOne('prod-1');
+      expect(cacheService.getOrSet).toHaveBeenCalledWith(
+        'products:prod-1',
+        120,
+        expect.any(Function),
+      );
     });
   });
 

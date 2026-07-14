@@ -13,6 +13,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { TrpcModule } from './trpc/trpc.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import Keyv from 'keyv';
 import { CacheServiceModule } from './modules/cache/cache.module';
 
 @Module({
@@ -26,17 +27,29 @@ import { CacheServiceModule } from './modules/cache/cache.module';
     ]),
     CacheModule.registerAsync({
       isGlobal: true,
-      useFactory: async (configService: ConfigService) => ({
-        stores: [
-          await redisStore({
-            socket: {
-              host: configService.get('REDIS_HOST', 'localhost'),
-              port: +configService.get('REDIS_PORT', 6379),
-            },
-          }),
-        ],
-        ttl: +configService.get('REDIS_TTL', 60),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const redisAdapter = (await redisStore({
+          socket: {
+            host: configService.get('REDIS_HOST', 'localhost'),
+            port: +configService.get('REDIS_PORT', 6379),
+          },
+        })) as any;
+
+        // redis-yet exposes `del`/`reset`; Keyv (used by @nestjs/cache-manager)
+        // requires `delete`/`clear`, so wrap the adapter in a Keyv with aliases.
+        const keyvStore = new Keyv({
+          store: {
+            ...redisAdapter,
+            delete: redisAdapter.del,
+            clear: redisAdapter.reset,
+          },
+          ttl: +configService.get('REDIS_TTL', 60),
+        });
+
+        return {
+          stores: [keyvStore],
+        };
+      },
       inject: [ConfigService],
     }),
     PrismaModule,

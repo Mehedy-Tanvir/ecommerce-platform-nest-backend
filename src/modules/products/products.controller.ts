@@ -27,17 +27,23 @@ import { ProductResponseDto } from './dto/product-response.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { CacheService } from '../cache/cache.service';
+import { CacheInvalidate } from '../../common/decorators/cache-invalidate.decorator';
 
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productService: ProductsService) {}
+  constructor(
+    private readonly productService: ProductsService,
+    private readonly cacheService: CacheService,
+  ) {}
 
   //   create a new product
   @Post()
   @UseGuards(JwtAuthGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @CacheInvalidate('products:*')
   @ApiOperation({ summary: 'Create a new product admin only' })
   @ApiBody({
     type: CreateProductDto,
@@ -87,7 +93,11 @@ export class ProductsController {
     data: ProductResponseDto[];
     meta: { total: number; page: number; limit: number; totalPages: number };
   }> {
-    return await this.productService.findAll(queryDto);
+    return await this.cacheService.getOrSet(
+      `products:list:${JSON.stringify(queryDto)}`,
+      60,
+      () => this.productService.findAll(queryDto),
+    );
   }
 
   // get product by id
@@ -105,7 +115,9 @@ export class ProductsController {
     description: 'Product not found',
   })
   async findOne(@Param('id') id: string): Promise<ProductResponseDto> {
-    return await this.productService.findOne(id);
+    return await this.cacheService.getOrSet(`products:${id}`, 120, () =>
+      this.productService.findOne(id),
+    );
   }
 
   // update a product
@@ -113,6 +125,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @CacheInvalidate('products:*')
   @ApiOperation({
     summary: 'Update a product - Admin only',
   })
@@ -145,6 +158,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @CacheInvalidate('products:*')
   @ApiOperation({
     summary: 'Update product stock - Admin only',
   })
@@ -188,6 +202,7 @@ export class ProductsController {
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
+  @CacheInvalidate('products:*')
   @ApiOperation({
     summary: 'Delete product - Admin only',
   })

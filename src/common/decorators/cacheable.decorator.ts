@@ -73,7 +73,7 @@ export function Cacheable(options: CacheableOptions = {}): MethodDecorator {
       return cacheService.getOrSet(
         key,
         ttl,
-        () => originalMethod.apply(this, args) as unknown,
+        () => originalMethod.apply(this, args) as Promise<unknown>,
       );
     };
 

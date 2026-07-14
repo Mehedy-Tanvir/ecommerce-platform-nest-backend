@@ -1,6 +1,6 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class CacheService {
@@ -59,7 +59,7 @@ export class CacheService {
       return;
     }
 
-    const client = (this.cacheManager.store as any)?.client;
+    const client = (this.cacheManager as any)?.stores?.[0]?.store?.client;
     if (!client || typeof client.scan !== 'function') {
       this.logger.warn(
         'Underlying redis client not available; cannot invalidate by pattern',
@@ -91,6 +91,6 @@ export class CacheService {
   }
 
   async reset(): Promise<void> {
-    await this.cacheManager.reset();
+    await this.cacheManager.clear();
   }
 }

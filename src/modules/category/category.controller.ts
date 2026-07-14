@@ -26,19 +26,25 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { QueryCategoryDto } from './dto/query-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CacheService } from '../cache/cache.service';
+import { CacheInvalidate } from '../../common/decorators/cache-invalidate.decorator';
 
 @ApiTags('Category')
 @Controller('categories')
 export class CategoryController {
   private readonly logger = new Logger(CategoryController.name);
 
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(
+    private readonly categoryService: CategoryService,
+    private readonly cacheService: CacheService,
+  ) {}
 
   //   create a new category
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @CacheInvalidate('categories:*')
   @ApiOperation({
     summary: 'Create a new category',
     description: 'Creates a new category. Only accessible by admin users.',
@@ -88,7 +94,11 @@ export class CategoryController {
     },
   })
   async findAll(@Query() queryDto: QueryCategoryDto) {
-    return await this.categoryService.findAll(queryDto);
+    return await this.cacheService.getOrSet(
+      `categories:list:${JSON.stringify(queryDto)}`,
+      300,
+      () => this.categoryService.findAll(queryDto),
+    );
   }
 
   // Get a category by ID
@@ -122,7 +132,11 @@ export class CategoryController {
   async findOneBySlug(
     @Param('slug') slug: string,
   ): Promise<CategoryResponseDto> {
-    return await this.categoryService.findOneBySlug(slug);
+    return await this.cacheService.getOrSet(
+      `categories:slug:${slug}`,
+      300,
+      () => this.categoryService.findOneBySlug(slug),
+    );
   }
 
   // update category admin only
@@ -130,6 +144,7 @@ export class CategoryController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @CacheInvalidate('categories:*')
   @ApiOperation({
     summary: 'Update a category admin only',
     description:
@@ -157,6 +172,7 @@ export class CategoryController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
+  @CacheInvalidate('categories:*')
   @ApiOperation({
     summary: 'Delete a category admin only',
     description:

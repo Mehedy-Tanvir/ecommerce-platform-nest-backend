@@ -13,6 +13,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { TrpcModule } from './trpc/trpc.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { CacheServiceModule } from './modules/cache/cache.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { redisStore } from 'cache-manager-redis-yet';
       inject: [ConfigService],
     }),
     PrismaModule,
+    CacheServiceModule,
     TrpcModule,
     AuthModule,
     UsersModule,

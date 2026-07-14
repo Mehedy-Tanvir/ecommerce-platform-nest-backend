@@ -16,6 +16,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import Keyv from 'keyv';
 import { CacheServiceModule } from './modules/cache/cache.module';
+import { EventBusModule } from './modules/event-bus/event-bus.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { CacheServiceModule } from './modules/cache/cache.module';
     }),
     PrismaModule,
     CacheServiceModule,
+    EventBusModule,
     TrpcModule,
     AuthModule,
     UsersModule,

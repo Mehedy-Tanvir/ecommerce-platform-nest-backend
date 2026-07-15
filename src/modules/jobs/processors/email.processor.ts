@@ -12,6 +12,7 @@ export interface SendOrderConfirmationJob {
   orderId: string;
   email: string;
   totalAmount: number;
+  paymentStatus?: string;
 }
 
 export interface SendPasswordResetJob {
@@ -33,9 +34,9 @@ export class EmailProcessor {
 
   @Process('send-order-confirmation')
   sendOrderConfirmation(job: Job<SendOrderConfirmationJob>) {
-    const { orderId, email, totalAmount } = job.data;
+    const { orderId, email, totalAmount, paymentStatus } = job.data;
     this.logger.log(
-      `Sending order confirmation ${orderId} to ${email} (total: ${totalAmount})`,
+      `Sending order confirmation ${orderId} to ${email} (total: ${totalAmount}${paymentStatus ? `, payment: ${paymentStatus}` : ''})`,
     );
     // TODO: render order confirmation template and send
     return { sent: true, orderId, email };

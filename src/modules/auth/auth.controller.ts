@@ -4,8 +4,10 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -43,8 +45,11 @@ export class AuthController {
     status: 429,
     description: 'Too Many Requests. Please try again later.',
   })
-  async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
-    return await this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Req() req?: Request,
+  ): Promise<AuthResponseDto> {
+    return await this.authService.register(registerDto, req?.ip);
   }
 
   // refresh access token
@@ -131,7 +136,10 @@ export class AuthController {
     status: 500,
     description: 'Internal Server Error. An unexpected error occurred.',
   })
-  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
-    return await this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() req?: Request,
+  ): Promise<AuthResponseDto> {
+    return await this.authService.login(loginDto, req?.ip);
   }
 }

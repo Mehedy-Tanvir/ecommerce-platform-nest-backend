@@ -16,6 +16,8 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EVENTS } from '../event-bus/constants';
 import { UserRegisteredEvent } from '../event-bus/events';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS } from '../audit/audit-actions';
 
 @Injectable()
 export class AuthService {
@@ -27,9 +29,13 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private eventEmitter: EventEmitter2,
+    private auditService: AuditService,
   ) {}
   // register a new user
-  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register(
+    registerDto: RegisterDto,
+    ipAddress?: string,
+  ): Promise<AuthResponseDto> {
     const { email, password, firstName, lastName } = registerDto;
 
     // check if user already exists
@@ -65,6 +71,13 @@ export class AuthService {
         EVENTS.USER_REGISTERED,
         new UserRegisteredEvent(user.id, user.email),
       );
+      await this.auditService.log({
+        action: AUDIT_ACTIONS.USER_REGISTERED,
+        entity: 'user',
+        entityId: user.id,
+        userId: user.id,
+        ipAddress,
+      });
       return { ...tokens, user };
     } catch (error) {
       this.logger.error(
@@ -143,7 +156,10 @@ export class AuthService {
   }
 
   // login user
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(
+    loginDto: LoginDto,
+    ipAddress?: string,
+  ): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
 
     const user = await this.prisma.user.findUnique({
@@ -162,6 +178,13 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
+    await this.auditService.log({
+      action: AUDIT_ACTIONS.USER_LOGIN,
+      entity: 'user',
+      entityId: user.id,
+      userId: user.id,
+      ipAddress,
+    });
     return {
       ...tokens,
       user: {

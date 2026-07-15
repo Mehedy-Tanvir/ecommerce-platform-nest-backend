@@ -11,15 +11,21 @@ import { ProductResponseDto } from './dto/product-response.dto';
 import { Category, Prisma, Product } from '@prisma/client';
 import { QueryProductDto } from './dto/query-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS } from '../audit/audit-actions';
 
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService,
+  ) {}
 
   //   create product
   async create(
     createProductDto: CreateProductDto,
+    userId?: string,
   ): Promise<ProductResponseDto> {
     const existingSku = await this.prisma.product.findUnique({
       where: { sku: createProductDto.sku },
@@ -38,6 +44,13 @@ export class ProductsService {
       include: {
         category: true,
       },
+    });
+
+    await this.auditService.log({
+      action: AUDIT_ACTIONS.PRODUCT_CREATED,
+      entity: 'product',
+      entityId: product.id,
+      userId,
     });
 
     return this.formatProduct(product);
@@ -120,6 +133,7 @@ export class ProductsService {
   async update(
     id: string,
     updateProductDto: UpdateProductDto,
+    userId?: string,
   ): Promise<ProductResponseDto> {
     this.logger.log(`Update called for product id: ${id}`);
     this.logger.debug(`Payload received: ${JSON.stringify(updateProductDto)}`);
@@ -172,6 +186,14 @@ export class ProductsService {
       },
     });
 
+    await this.auditService.log({
+      action: AUDIT_ACTIONS.PRODUCT_UPDATED,
+      entity: 'product',
+      entityId: updatedProduct.id,
+      userId,
+      metadata: { changes: updateData },
+    });
+
     return this.formatProduct(updatedProduct);
   }
 
@@ -203,7 +225,10 @@ export class ProductsService {
   }
 
   // delete product by id
-  async deleteProduct(id: string): Promise<{ message: string }> {
+  async deleteProduct(
+    id: string,
+    userId?: string,
+  ): Promise<{ message: string }> {
     const product = await this.prisma.product.findUnique({
       where: { id },
       include: {
@@ -223,6 +248,14 @@ export class ProductsService {
     await this.prisma.product.delete({
       where: { id },
     });
+
+    await this.auditService.log({
+      action: AUDIT_ACTIONS.PRODUCT_DELETED,
+      entity: 'product',
+      entityId: id,
+      userId,
+    });
+
     return { message: 'Product deleted successfully.' };
   }
 }

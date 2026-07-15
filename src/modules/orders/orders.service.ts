@@ -15,12 +15,15 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EVENTS } from '../event-bus/constants';
 import { OrderPlacedEvent, OrderCancelledEvent } from '../event-bus/events';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS } from '../audit/audit-actions';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
+    private auditService: AuditService,
   ) {}
 
   //   Create order
@@ -101,6 +104,13 @@ export class OrdersService {
       EVENTS.ORDER_PLACED,
       new OrderPlacedEvent(order.id, order.userId, Number(order.totalAmount)),
     );
+
+    await this.auditService.log({
+      action: AUDIT_ACTIONS.ORDER_CREATED,
+      entity: 'order',
+      entityId: order.id,
+      userId,
+    });
 
     return this.wrap(order);
   }
@@ -291,6 +301,19 @@ export class OrdersService {
       },
     });
 
+    if (updateOrderDto.status && updateOrderDto.status !== existing.status) {
+      await this.auditService.log({
+        action: AUDIT_ACTIONS.ORDER_STATUS_CHANGED,
+        entity: 'order',
+        entityId: updated.id,
+        userId: existing.userId,
+        metadata: {
+          from: existing.status,
+          to: updated.status,
+        },
+      });
+    }
+
     return this.wrap(updated);
   }
 
@@ -343,6 +366,13 @@ export class OrdersService {
       EVENTS.ORDER_CANCELLED,
       new OrderCancelledEvent(cancelled.id, cancelled.userId),
     );
+
+    await this.auditService.log({
+      action: AUDIT_ACTIONS.ORDER_CANCELLED,
+      entity: 'order',
+      entityId: cancelled.id,
+      userId: cancelled.userId,
+    });
 
     return this.wrap(cancelled);
   }

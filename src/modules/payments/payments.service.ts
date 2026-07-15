@@ -12,6 +12,8 @@ import { PaymentResponseDto } from './dto/payment-response.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EVENTS } from '../event-bus/constants';
 import { PaymentCompletedEvent } from '../event-bus/events';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS } from '../audit/audit-actions';
 
 @Injectable()
 export class PaymentsService {
@@ -20,6 +22,7 @@ export class PaymentsService {
   constructor(
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
+    private auditService: AuditService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2026-05-27.dahlia',
@@ -110,10 +113,35 @@ export class PaymentsService {
       throw new BadRequestException('Payment already completed');
     }
 
-    const paymentIntent =
-      await this.stripe.paymentIntents.retrieve(paymentIntentId);
+    let paymentIntent: Stripe.PaymentIntent;
+    try {
+      paymentIntent =
+        await this.stripe.paymentIntents.retrieve(paymentIntentId);
+    } catch (error) {
+      await this.auditService.log({
+        action: AUDIT_ACTIONS.PAYMENT_FAILED,
+        entity: 'payment',
+        entityId: payment.id,
+        userId,
+        metadata: {
+          orderId,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to retrieve payment intent',
+        },
+      });
+      throw new BadRequestException('Payment not successful');
+    }
 
     if (paymentIntent.status !== 'succeeded') {
+      await this.auditService.log({
+        action: AUDIT_ACTIONS.PAYMENT_FAILED,
+        entity: 'payment',
+        entityId: payment.id,
+        userId,
+        metadata: { orderId, error: `Payment status: ${paymentIntent.status}` },
+      });
       throw new BadRequestException('Payment not successful');
     }
     const [updatedPayment] = await this.prisma.$transaction([
@@ -145,6 +173,14 @@ export class PaymentsService {
       EVENTS.PAYMENT_COMPLETED,
       new PaymentCompletedEvent(updatedPayment.id, orderId),
     );
+
+    await this.auditService.log({
+      action: AUDIT_ACTIONS.PAYMENT_COMPLETED,
+      entity: 'payment',
+      entityId: updatedPayment.id,
+      userId,
+      metadata: { orderId },
+    });
 
     return {
       success: true,

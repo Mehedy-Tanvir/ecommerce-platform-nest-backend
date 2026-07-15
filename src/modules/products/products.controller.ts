@@ -29,6 +29,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CacheService } from '../cache/cache.service';
 import { CacheInvalidate } from '../../common/decorators/cache-invalidate.decorator';
+import { GetUser } from '../../common/decorators/get-user.decorator';
 
 @ApiTags('products')
 @Controller('products')
@@ -58,8 +59,9 @@ export class ProductsController {
   @ApiResponse({ status: 403, description: 'Forbidden admin role required' })
   createProduct(
     @Body() createProductDto: CreateProductDto,
+    @GetUser('id') userId?: string,
   ): Promise<ProductResponseDto> {
-    return this.productService.create(createProductDto);
+    return this.productService.create(createProductDto, userId);
   }
 
   // Get all products
@@ -148,8 +150,9 @@ export class ProductsController {
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
+    @GetUser('id') userId?: string,
   ): Promise<ProductResponseDto> {
-    return await this.productService.update(id, updateProductDto);
+    return await this.productService.update(id, updateProductDto, userId);
   }
 
   // update product stock
@@ -218,7 +221,10 @@ export class ProductsController {
     status: 400,
     description: 'Can not delete product in active orders',
   })
-  async deleteProduct(@Param('id') id: string): Promise<{ message: string }> {
-    return await this.productService.deleteProduct(id);
+  async deleteProduct(
+    @Param('id') id: string,
+    @GetUser('id') userId?: string,
+  ): Promise<{ message: string }> {
+    return await this.productService.deleteProduct(id, userId);
   }
 }

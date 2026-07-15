@@ -17,6 +17,8 @@ import { redisStore } from 'cache-manager-redis-yet';
 import Keyv from 'keyv';
 import { CacheServiceModule } from './modules/cache/cache.module';
 import { EventBusModule } from './modules/event-bus/event-bus.module';
+import { BullModule } from '@nestjs/bull';
+import { JobsModule } from './modules/jobs/jobs.module';
 
 @Module({
   imports: [
@@ -56,6 +58,22 @@ import { EventBusModule } from './modules/event-bus/event-bus.module';
     }),
     PrismaModule,
     CacheServiceModule,
+    BullModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        redis: {
+          host: configService.get<string>('REDIS_HOST', 'localhost'),
+          port: configService.get<number>('REDIS_PORT', 6379),
+        },
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
+        },
+      }),
+      inject: [ConfigService],
+    }),
     EventBusModule,
     TrpcModule,
     AuthModule,
@@ -65,6 +83,7 @@ import { EventBusModule } from './modules/event-bus/event-bus.module';
     CartModule,
     OrdersModule,
     PaymentsModule,
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

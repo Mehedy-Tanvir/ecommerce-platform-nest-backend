@@ -51,10 +51,7 @@ export class CartController {
   })
   @ApiNotFoundResponse({ description: 'Product not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  async addItem(
-    @GetUser() user: { id: string },
-    @Body() dto: AddCartItemDto,
-  ) {
+  async addItem(@GetUser() user: { id: string }, @Body() dto: AddCartItemDto) {
     return this.cartService.addItem(user.id, dto);
   }
 

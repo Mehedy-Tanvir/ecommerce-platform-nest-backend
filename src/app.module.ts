@@ -19,6 +19,7 @@ import { CacheServiceModule } from './modules/cache/cache.module';
 import { EventBusModule } from './modules/event-bus/event-bus.module';
 import { BullModule } from '@nestjs/bull';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { JobsModule } from './modules/jobs/jobs.module';
     OrdersModule,
     PaymentsModule,
     JobsModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

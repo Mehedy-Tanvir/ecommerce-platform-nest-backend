@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html>
-  <body>
-    <h1>Order Confirmation</h1>
-    <p>Hi {{name}},</p>
-    <p>Your order <strong>#{{orderId}}</strong> has been confirmed.</p>
-    <p>Total: {{total}}</p>
-  </body>
-</html>
+<h1>Order Confirmed — #{{orderNumber}}</h1>
+<p>Hi {{firstName}},</p>
+<p>Your order has been placed successfully.</p>
+<ul>
+{{#each items}}
+  <li>{{name}} x {{quantity}} — ${{price}}</li>
+{{/each}}
+</ul>
+<p><strong>Total: ${{total}}</strong></p>

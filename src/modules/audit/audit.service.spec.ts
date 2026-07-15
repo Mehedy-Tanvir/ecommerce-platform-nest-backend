@@ -70,6 +70,63 @@ describe('AuditService', () => {
       });
     });
 
+    describe('findAll', () => {
+      beforeEach(() => {
+        prisma.$transaction.mockImplementation((ops: any[]) =>
+          Promise.all(ops),
+        );
+      });
+
+      it('should return paginated results ordered by createdAt desc', async () => {
+        const logs = [
+          { id: 'log-1', createdAt: new Date('2024-01-02') },
+          { id: 'log-2', createdAt: new Date('2024-01-01') },
+        ];
+        prisma.auditLog.findMany.mockResolvedValue(logs as any);
+        prisma.auditLog.count.mockResolvedValue(2);
+
+        const result = await service.findAll({ page: 1, limit: 20 });
+
+        expect(prisma.auditLog.findMany).toHaveBeenCalledWith({
+          where: {},
+          orderBy: { createdAt: 'desc' },
+          skip: 0,
+          take: 20,
+        });
+        expect(result.total).toBe(2);
+        expect(result.totalPages).toBe(1);
+        expect(result.data).toEqual(logs);
+      });
+
+      it('should apply filters and pagination', async () => {
+        prisma.auditLog.findMany.mockResolvedValue([]);
+        prisma.auditLog.count.mockResolvedValue(0);
+
+        await service.findAll({
+          page: 2,
+          limit: 10,
+          action: 'ORDER_CREATED',
+          entity: 'order',
+          userId: 'user-1',
+          startDate: '2024-01-01',
+          endDate: '2024-12-31',
+        });
+
+        const findManyArg = prisma.auditLog.findMany.mock.calls[0][0];
+        expect(findManyArg.where).toEqual({
+          action: 'ORDER_CREATED',
+          entity: 'order',
+          userId: 'user-1',
+          createdAt: {
+            gte: new Date('2024-01-01'),
+            lte: new Date('2024-12-31'),
+          },
+        });
+        expect(findManyArg.skip).toBe(10);
+        expect(findManyArg.take).toBe(10);
+      });
+    });
+
     it('should work with metadata', async () => {
       prisma.auditLog.create.mockResolvedValue({} as any);
       const metadata = { amount: 100, currency: 'USD' };

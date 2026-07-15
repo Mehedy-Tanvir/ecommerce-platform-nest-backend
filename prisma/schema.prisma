@@ -190,4 +190,20 @@ model Payment {
   @@map("payments")
 }
 
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String   // "ORDER_CREATED", "USER_LOGIN", "PRODUCT_UPDATED"
+  entity    String   // "order", "user", "product"
+  entityId  String?
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
 

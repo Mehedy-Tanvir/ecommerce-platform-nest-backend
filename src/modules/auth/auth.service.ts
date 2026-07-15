@@ -13,6 +13,9 @@ import { randomBytes } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login-dto';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EVENTS } from '../event-bus/constants';
+import { UserRegisteredEvent } from '../event-bus/events';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +26,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private eventEmitter: EventEmitter2,
   ) {}
   // register a new user
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -57,6 +61,10 @@ export class AuthService {
       });
       const tokens = await this.generateTokens(user.id, user.email, user.role);
       await this.updateRefreshToken(user.id, tokens.refreshToken);
+      this.eventEmitter.emit(
+        EVENTS.USER_REGISTERED,
+        new UserRegisteredEvent(user.id, user.email),
+      );
       return { ...tokens, user };
     } catch (error) {
       this.logger.error(

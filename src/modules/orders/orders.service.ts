@@ -12,10 +12,16 @@ import {
 import { Order, OrderItem, OrderStatus, Product, User } from '@prisma/client';
 import { QueryOrderDto } from './dto/query-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EVENTS } from '../event-bus/constants';
+import { OrderPlacedEvent, OrderCancelledEvent } from '../event-bus/events';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   //   Create order
   async create(
@@ -90,6 +96,11 @@ export class OrdersService {
       }
       return newOrder;
     });
+
+    this.eventEmitter.emit(
+      EVENTS.ORDER_PLACED,
+      new OrderPlacedEvent(order.id, order.userId, Number(order.totalAmount)),
+    );
 
     return this.wrap(order);
   }
@@ -327,6 +338,11 @@ export class OrdersService {
         },
       });
     });
+
+    this.eventEmitter.emit(
+      EVENTS.ORDER_CANCELLED,
+      new OrderCancelledEvent(cancelled.id, cancelled.userId),
+    );
 
     return this.wrap(cancelled);
   }

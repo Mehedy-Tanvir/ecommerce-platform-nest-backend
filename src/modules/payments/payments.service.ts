@@ -9,12 +9,18 @@ import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { PaymentStatus, Prisma } from '@prisma/client';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { PaymentResponseDto } from './dto/payment-response.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EVENTS } from '../event-bus/constants';
+import { PaymentCompletedEvent } from '../event-bus/events';
 
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2,
+  ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2026-05-27.dahlia',
     });
@@ -134,6 +140,11 @@ export class PaymentsService {
         data: { checkedOut: true },
       });
     }
+
+    this.eventEmitter.emit(
+      EVENTS.PAYMENT_COMPLETED,
+      new PaymentCompletedEvent(updatedPayment.id, orderId),
+    );
 
     return {
       success: true,
